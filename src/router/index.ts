@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from '@ionic/vue-router'
-import { RouteRecordRaw } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 
+// Views
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
@@ -8,11 +9,11 @@ import FavoritesPage from '@/views/FavoritesPage.vue'
 import PublishPage from '@/views/PublishPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
 
-const routes: Array<RouteRecordRaw> = [
-   {
+const routes: RouteRecordRaw[] = [
+  {
     path: '/',
     name: 'Home',
-    component: HomePage // Mudei aqui: HomePage diretamente na raiz
+    component: HomePage
   },
   {
     path: '/login',
@@ -44,6 +45,8 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(), // 🔥 A mudança decisiva
+  history: createWebHashHistory(),
   routes
 })
+
+export default router
