@@ -1,20 +1,17 @@
-// src/router/index.ts
 import { createRouter, createWebHistory } from '@ionic/vue-router'
 import { RouteRecordRaw } from 'vue-router'
 import HomePage from '@/views/HomePage.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
 import FavoritesPage from '@/views/FavoritesPage.vue'
+import PublishPage from '@/views/PublishPage.vue'
+import DashboardPage from '@/views/DashboardPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
-  },
-  {
-    path: '/home',
     name: 'Home',
-    component: HomePage
+    component: HomePage // Mudei aqui: HomePage diretamente na raiz
   },
   {
     path: '/login',
@@ -31,25 +28,35 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Favorites',
     component: FavoritesPage
   },
-  // Em src/router/index.ts
-{
-  path: '/publish',
-  name: 'Publish',
-  component: () => import('@/views/PublishPage.vue'),
-  meta: { requiresAuth: true }
-},
-// Em src/router/index.ts
-{
-  path: '/dashboard',
-  name: 'Dashboard',
-  component: () => import('@/views/DashboardPage.vue'),
-  meta: { requiresAuth: true }
-}
+  {
+    path: '/publish',
+    name: 'Publish',
+    component: PublishPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardPage,
+    meta: { requiresAuth: true }
+  }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+})
+
+// Guarda de rota para autenticação
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true'
+  
+  if (requiresAuth && !isAuthenticated) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router
