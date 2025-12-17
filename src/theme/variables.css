@@ -1,2 +1,43 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+/* src/theme.css */
+@import '@ionic/vue/css/core.css';
+@import '@ionic/vue/css/normalize.css';
+@import '@ionic/vue/css/structure.css';
+@import '@ionic/vue/css/typography.css';
+@import '@ionic/vue/css/palettes/dark.system.css';
+
+/* Utilitários */
+@import '@ionic/vue/css/padding.css';
+@import '@ionic/vue/css/float-elements.css';
+@import '@ionic/vue/css/text-alignment.css';
+@import '@ionic/vue/css/text-transformation.css';
+@import '@ionic/vue/css/flex-utils.css';
+
+/* Estilos globais personalizados */
+:root {
+  --ion-background-color: #000000;
+  --ion-text-color: #ffffff;
+  --ion-color-primary: #ff0000;
+  --ion-color-primary-rgb: 255, 0, 0;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #e00000;
+  --ion-color-primary-tint: #ff1a1a;
+}
+
+/* Botões visíveis */
+ion-back-button {
+  --color: white;
+}
+
+ion-back-button::part(text),
+ion-back-button::part(icon) {
+  color: white !important;
+}
+
+ion-menu-button {
+  --color: white;
+}
+
+ion-menu-button::part(icon) {
+  color: white !important;
+}

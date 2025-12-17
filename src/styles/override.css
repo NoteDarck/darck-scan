@@ -1,0 +1,16 @@
+/* src/styles/override.css */
+* {
+  color: white !important;
+}
+
+ion-header {
+  background: black !important;
+}
+
+ion-toolbar {
+  background: black !important;
+}
+
+ion-content {
+  background: transparent !important;
+}
