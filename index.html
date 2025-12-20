@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>DarckScan</title>
+    
+    <!-- Importar fonte do Ionic -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
+    
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Cor do tema -->
+    <meta name="theme-color" content="#000000">
+    
+    <!-- iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <script type="module" crossorigin src="/darck-scan/assets/index-Af8XQjaR.js"></script>
+    <link rel="stylesheet" crossorigin href="/darck-scan/assets/index-DQTuar-A.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+    <!-- Script para corrigir roteamento no GitHub Pages -->
+    <script>
+      (function() {
+        const redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.pathname) {
+          history.replaceState(null, '', redirect);
+        }
+      })();
+    </script>
+  </body>
+</html>
