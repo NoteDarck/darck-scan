@@ -32,7 +32,7 @@
         <div v-if="currentStep === 1" class="step-content">
           <h2 class="step-title">Informações do Mangá</h2>
           <p class="step-subtitle">Preencha os dados básicos da sua obra</p>
-          
+
           <form class="publish-form">
             <!-- Upload da Capa -->
             <div class="form-section">
@@ -155,7 +155,7 @@
         <div v-if="currentStep === 2" class="step-content">
           <h2 class="step-title">Configurar Capítulos</h2>
           <p class="step-subtitle">Adicione e configure os capítulos do seu mangá</p>
-          
+
           <div class="chapters-section">
             <div class="chapters-header">
               <h3>Capítulos</h3>
@@ -230,7 +230,7 @@
         <div v-if="currentStep === 3" class="step-content">
           <h2 class="step-title">Publicação Final</h2>
           <p class="step-subtitle">Confira todas as informações antes de publicar</p>
-          
+
           <div class="review-container">
             <!-- Resumo do Mangá -->
             <div class="review-section">
@@ -337,7 +337,7 @@ onMounted(() => {
     // Carregar mangá para edição ou rascunho
     const editMangaId = route.query.edit ? parseInt(route.query.edit as string) : null;
     const draftMangaId = route.query.draft ? parseInt(route.query.draft as string) : null;
-    
+
     if (editMangaId) {
       const mangaToEdit = getMangaById(editMangaId);
       if (mangaToEdit) {
@@ -406,7 +406,7 @@ const mangaData = ref<MangaData>({
 
 // Gêneros disponíveis
 const availableGenres = ref([
-  'Ação', 'Aventura', 'Comédia', 'Drama', 'Fantasia', 'Horror', 'Mistério', 'Romance', 
+  'Ação', 'Aventura', 'Comédia', 'Drama', 'Fantasia', 'Horror', 'Mistério', 'Romance',
   'Sci-Fi', 'Slice of Life', 'Esportes', 'Sobrenatural', 'Mecha', 'Histórico', 'Psicológico', 'Thriller'
 ]);
 
@@ -493,7 +493,7 @@ const addChapter = () => {
     pages: [],
     createdAt: new Date().toISOString()
   });
-  
+
   editingChapterIndex.value = mangaData.value.chapters.length - 1;
 };
 
@@ -519,12 +519,12 @@ const deleteChapter = async (index: number) => {
     message: 'Tem certeza que deseja excluir este capítulo?',
     buttons: [
       { text: 'Cancelar', role: 'cancel' },
-      { 
-        text: 'Excluir', 
+      {
+        text: 'Excluir',
         handler: () => {
           mangaData.value.chapters.splice(index, 1);
           showToast('Capítulo excluído', 'success');
-        } 
+        }
       }
     ]
   });
@@ -557,7 +557,7 @@ const publishManga = async () => {
   try {
     // Simular publicação
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Preparar dados do mangá
     const finalMangaData: MangaData = {
       ...mangaData.value,
@@ -567,7 +567,7 @@ const publishManga = async () => {
       views: mangaData.value.views || 0,
       likes: mangaData.value.likes || 0
     };
-    
+
     // Se for uma edição, atualiza o mangá existente
     if (mangaData.value.id) {
       updateManga(finalMangaData);
@@ -578,7 +578,7 @@ const publishManga = async () => {
       currentMangas.push(finalMangaData);
       localStorage.setItem('publishedMangas', JSON.stringify(currentMangas));
     }
-    
+
     // Criar arquivo Vue para o mangá (somente se não for rascunho)
     if (!publishAsDraft.value) {
       const fileCreated = await createMangaFile(finalMangaData);
@@ -586,14 +586,14 @@ const publishManga = async () => {
         console.log('Manga file created successfully');
       }
     }
-    
+
     loadAllMangasFromLocalStorage(); // Recarrega os dados no composable
-    
+
     await showToast(
       publishAsDraft.value ? 'Rascunho salvo com sucesso!' : 'Mangá publicado com sucesso!',
       'success'
     );
-    
+
     // Redirecionar para a página do mangá ou dashboard
     router.push('/dashboard'); // Redireciona para o dashboard após publicar/salvar
   } catch (error) {
@@ -1382,33 +1382,33 @@ ion-button {
   .publish-container {
     padding: 0.5rem;
   }
-  
+
   .step-content {
     padding: 1.5rem;
   }
-  
+
   .form-row {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .review-card {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
-  
+
   .chapter-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .chapter-actions {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
@@ -1418,21 +1418,21 @@ ion-button {
   .progress-steps {
     padding: 0;
   }
-  
+
   .step-label {
     font-size: 0.75rem;
   }
-  
+
   .step-number {
     width: 32px;
     height: 32px;
     font-size: 1rem;
   }
-  
+
   .step-content {
     padding: 1rem;
   }
-  
+
   .step-title {
     font-size: 1.5rem;
   }
