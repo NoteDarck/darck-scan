@@ -509,8 +509,8 @@
           <div class="action-card" @click="viewEarnings">
             <ion-icon :icon="cash" class="action-icon"></ion-icon>
             <span>Ganhos</span>
-          </div
-          ><div class="action-card" @click="manageSchedule">
+          </div>
+          <div class="action-card" @click="manageSchedule">
             <ion-icon :icon="calendar" class="action-icon"></ion-icon>
             <span>Agendar</span>
           </div>

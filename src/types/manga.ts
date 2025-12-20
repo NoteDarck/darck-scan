@@ -14,8 +14,8 @@ export interface MangaData {
   cover: string;
   genres: string[];
   tags: string[];
-  type: 'mangá' | 'manhwa' | 'manhua' | 'webtoon' | ''; // Adicionado '' para permitir valor inicial vazio
-  status: 'em-andamento' | 'completo' | 'hiato' | 'cancelado' | ''; // Adicionado '' para permitir valor inicial vazio
+  type: 'mangá' | 'manhwa' | 'manhua' | 'webtoon';
+  status: 'em-andamento' | 'completo' | 'hiato' | 'cancelado';
   ageRating: string;
   chapters: MangaChapter[];
   userId?: number;

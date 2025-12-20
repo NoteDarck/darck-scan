@@ -94,15 +94,15 @@ const ageRatings = ref([
   { value: '18+', label: '18 anos', age: '18' }
 ]);
 
-// Validações CORRIGIDAS
+// Validações
 const canProceedToStep2 = computed(() => {
   return (
     mangaData.value.title.trim() !== '' &&
     mangaData.value.author.trim() !== '' &&
     mangaData.value.synopsis.trim().length >= 100 &&
-    mangaData.value.genres.length > 0 &&
-    mangaData.value.type !== '' && // Verifica se tem algum valor
-    mangaData.value.status !== '' // Verifica se tem algum valor
+    mangaData.value.genres.length > 0
+    // Removi as validações de cover, type e status para permitir continuar
+    // mesmo sem esses campos preenchidos
   );
 });
 
