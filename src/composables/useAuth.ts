@@ -110,7 +110,6 @@ export const useAuth = () => {
           id: Date.now(),
           name: firebaseUser.displayName || 'Usuário Google',
           email: firebaseUser.email,
-          password: 'GOOGLE_AUTH_PASSWORD', // Senha placeholder para compatibilidade local
           createdAt: new Date().toISOString(),
           avatar: firebaseUser.photoURL || undefined // Salva a foto do Google
         };
@@ -176,7 +175,7 @@ export const useAuth = () => {
       }
       
       // Criar novo usuário
-      const newUser: User = {
+      const newUser = {
         id: Date.now(),
         name,
         email,
@@ -254,7 +253,16 @@ export const useAuth = () => {
       let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
       const userIndex = localUsers.findIndex((u: any) => u.id === updatedUser.id);
       if (userIndex !== -1) {
-        localUsers[userIndex] = { ...localUsers[userIndex], name: newName, avatar: newAvatar };
+        // Preservar a senha existente
+        const existingUser = localUsers[userIndex];
+        localUsers[userIndex] = { 
+          ...existingUser, 
+          name: newName, 
+          avatar: newAvatar,
+          id: existingUser.id,
+          email: existingUser.email,
+          createdAt: existingUser.createdAt
+        };
         localStorage.setItem('users', JSON.stringify(localUsers));
       }
 
