@@ -12,7 +12,7 @@
     <ion-content class="manga-detail-content" v-if="manga">
       <div class="manga-header">
         <div class="manga-cover-container">
-          <img :src="manga.cover || 'https://via.placeholder.com/600x800'" alt="manga.title" class="manga-cover" />
+          <img :src="manga.cover || 'https://via.placeholder.com/600x800'" :alt="manga.title" class="manga-cover" />
           <div class="manga-badge" :class="manga.type.toLowerCase()">
             {{ manga.type }}
           </div>
@@ -49,7 +49,7 @@
           </div>
 
           <div class="manga-actions">
-            <ion-button @click="toggleFavorite" class="favorite-btn">
+            <ion-button @click="toggleFavoriteManga" class="favorite-btn">
               <ion-icon 
                 :icon="isFavorite(manga.id!) ? heart : heartOutline" 
                 slot="start"
