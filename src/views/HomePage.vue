@@ -101,8 +101,26 @@
               class="custom-searchbar"
               @ionInput="filterMangas"
             >
-              <ion-icon slot="start" :icon="search" class="search-icon"></ion-icon>
+              <!-- Ícone de pesquisa embutido no ion-searchbar, removido o duplicado -->
             </ion-searchbar>
+          </div>
+
+          <!-- Nova seção de Gêneros -->
+          <div class="genres-filter-container">
+            <ion-item class="genre-select-item">
+              <ion-label>Gêneros</ion-label>
+              <ion-select 
+                v-model="selectedGenres" 
+                multiple="true" 
+                placeholder="Selecione os gêneros"
+                class="custom-select"
+                interface="popover"
+              >
+                <ion-select-option v-for="genre in availableGenres" :key="genre" :value="genre">
+                  {{ genre }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
           </div>
         </div>
 
@@ -213,6 +231,8 @@ import {
   IonCardSubtitle,
   IonCardContent,
   IonBadge,
+  IonSelect, // Importado IonSelect
+  IonSelectOption, // Importado IonSelectOption
   toastController
 } from '@ionic/vue';
 import { 
@@ -261,6 +281,14 @@ const backgroundStyles = ref([
 const currentBackgroundIndex = ref(0);
 const searchQuery = ref('');
 const visibleCount = ref(8);
+const selectedGenres = ref<string[]>([]); // Novo estado para gêneros selecionados
+
+// Gêneros disponíveis (copiado de PublishPage.vue para consistência)
+const availableGenres = ref([
+  'Ação', 'Aventura', 'Comédia', 'Drama', 'Fantasia', 'Horror',
+  'Mistério', 'Romance', 'Sci-Fi', 'Slice of Life', 'Esportes',
+  'Sobrenatural', 'Mecha', 'Histórico', 'Psicológico', 'Thriller'
+]);
 
 // Estilo atual do background
 const currentBackgroundStyle = computed(() => {
@@ -396,17 +424,28 @@ const getMangaImage = (imageName: string) => {
 
 // Filtrar mangás
 const filteredMangas = computed(() => {
-  if (!searchQuery.value) {
-    return mangas.value.slice(0, visibleCount.value);
+  let filtered = mangas.value;
+
+  // Filtrar por texto de pesquisa
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(manga => 
+      manga.title.toLowerCase().includes(query) ||
+      manga.author.toLowerCase().includes(query) ||
+      manga.genres.some(genre => 
+        genre.toLowerCase().includes(query)
+      )
+    );
+  }
+
+  // Filtrar por gêneros selecionados
+  if (selectedGenres.value.length > 0) {
+    filtered = filtered.filter(manga => 
+      manga.genres.some(genre => selectedGenres.value.includes(genre))
+    );
   }
   
-  return mangas.value.filter(manga => 
-    manga.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    manga.author.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    manga.genres.some(genre => 
-      genre.toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  ).slice(0, visibleCount.value);
+  return filtered.slice(0, visibleCount.value);
 });
 
 // Funções de navegação
@@ -662,7 +701,7 @@ onMounted(() => {
 /* Search bar */
 .search-container {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0 auto 1rem; /* Ajustado margin-bottom */
 }
 
 .custom-searchbar {
@@ -679,6 +718,35 @@ onMounted(() => {
   color: #ff0000;
   font-size: 1.2rem;
   margin-left: 10px;
+}
+
+/* Gêneros Filter Container */
+.genres-filter-container {
+  max-width: 600px;
+  margin: 0 auto 2rem; /* Ajustado margin-bottom */
+  padding: 0 1rem;
+}
+
+.genre-select-item {
+  --background: rgba(255, 255, 255, 0.05);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --color: white;
+  --highlight-color-focused: #ff0000;
+  border-radius: 12px;
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.genre-select-item ion-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+}
+
+.custom-select {
+  --placeholder-color: rgba(255, 255, 255, 0.5);
+  --color: white;
+  --padding-start: 0;
+  --padding-end: 1rem;
 }
 
 /* Content container */
