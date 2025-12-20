@@ -19,7 +19,13 @@
       <div class="author-banner">
         <div class="author-info">
           <div class="author-avatar">
-            <ion-icon :icon="personCircle" class="avatar-icon"></ion-icon>
+            <img 
+              v-if="user?.avatar" 
+              :src="user.avatar" 
+              alt="Avatar do Autor" 
+              class="avatar-image"
+            />
+            <ion-icon v-else :icon="personCircle" class="avatar-icon"></ion-icon>
           </div>
           <div class="author-details">
             <h2>{{ user?.name || 'Autor' }}</h2>
@@ -1120,11 +1126,18 @@ const showToast = async (message: string, color: string = 'primary') => {
   align-items: center;
   justify-content: center;
   border: 2px solid #ff0000;
+  overflow: hidden;
 }
 
 .avatar-icon {
   font-size: 3rem;
   color: #ff0000;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .author-details h2 {

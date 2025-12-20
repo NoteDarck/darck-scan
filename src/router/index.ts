@@ -10,6 +10,7 @@ import PublishPage from '@/views/PublishPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
 import SettingsPage from '@/views/SettingsPage.vue'
 import MangaDetailPage from '@/views/MangaDetailPage.vue'
+import ChapterEditor from '@/views/ChapterEditor.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -54,6 +55,12 @@ const routes: RouteRecordRaw[] = [
     path: '/manga/:id',
     name: 'MangaDetail',
     component: MangaDetailPage
+  },
+  {
+    path: '/chapter-editor',
+    name: 'ChapterEditor',
+    component: ChapterEditor,
+    meta: { requiresAuth: true }
   }
 ]
 

@@ -31,10 +31,12 @@
         <div class="user-section" v-else>
           <div class="user-avatar">
             <img 
-              :src="user?.avatar || 'https://ionicframework.com/docs/img/demos/avatar.svg'" 
+              v-if="user?.avatar" 
+              :src="user.avatar" 
               alt="Avatar do Usuário" 
               class="avatar-image"
             />
+            <ion-icon v-else :icon="personCircle" class="avatar-icon"></ion-icon>
           </div>
           <p class="user-name">Olá, {{ userName }}!</p>
           <ion-button expand="block" fill="clear" @click="logout" class="logout-button">
@@ -67,7 +69,7 @@
             <ion-icon :icon="cloudUpload" slot="start" class="menu-icon"></ion-icon>
             <ion-label>Publicar Mangá</ion-label>
           </ion-item>
-          <ion-item @click="goToSettings" class="menu-item">
+          <ion-item v-if="isAuthenticated" @click="goToSettings" class="menu-item">
             <ion-icon :icon="settings" slot="start" class="menu-icon"></ion-icon>
             <ion-label>Configurações</ion-label>
           </ion-item>
