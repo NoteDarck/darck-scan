@@ -324,7 +324,7 @@ import { MangaData } from '@/types/manga';
 const router = useRouter();
 const route = useRoute();
 const { isAuthenticated, user } = useAuth();
-const { addManga, updateManga, getMangaById, loadAllMangasFromSupabase } = useMangaData(); // Atualizado para usar addManga e loadAllMangasFromSupabase
+const { addManga, updateManga, getMangaById, loadAllMangasFromSupabase } = useMangaData();
 
 // Verificar autenticação
 onMounted(() => {
@@ -349,17 +349,17 @@ const loadMangaForEdit = async (mangaId: number, isDraftMode: boolean = false) =
   const mangaToEdit = await getMangaById(mangaId);
   if (mangaToEdit) {
     // Verificar se o usuário é o autor
-    if (mangaToEdit.user_id !== user.value?.id) { // user_id agora é string (UUID)
+    if (mangaToEdit.user_id !== user.value?.id) {
       showToast('Você não tem permissão para editar este mangá.', 'danger');
       router.push('/dashboard');
       return;
     }
-    mangaData.value = { ...mangaToEdit, id: mangaToEdit.id }; // Garante que o ID está presente
-    publishAsDraft.value = isDraftMode || mangaToEdit.is_draft; // Mantém o estado de rascunho
-    currentStep.value = 1; // Começa no passo 1 para edição
+    mangaData.value = { ...mangaToEdit, id: mangaToEdit.id };
+    publishAsDraft.value = isDraftMode || mangaToEdit.is_draft;
+    currentStep.value = 1;
   } else {
     showToast(isDraftMode ? 'Rascunho não encontrado.' : 'Mangá não encontrado para edição.', 'danger');
-    router.replace('/publish'); // Redireciona para nova publicação
+    router.replace('/publish');
   }
 };
 
@@ -375,7 +375,7 @@ const notifyFollowers = ref(true);
 
 // Dados do mangá
 const mangaData = ref<MangaData>({
-  id: undefined, // ID pode ser undefined para novos mangás
+  id: undefined,
   title: '',
   author: user.value?.name || '',
   synopsis: '',
@@ -386,7 +386,7 @@ const mangaData = ref<MangaData>({
   status: 'em-andamento',
   ageRating: 'L',
   chapters: [],
-  user_id: user.value?.id, // Usar user_id para corresponder ao Supabase
+  user_id: user.value?.id,
   published_at: undefined,
   is_draft: false,
   views: 0,
@@ -547,10 +547,10 @@ const publishManga = async () => {
     // Preparar dados do mangá para o Supabase
     const finalMangaData: MangaData = {
       ...mangaData.value,
-      user_id: user.value?.id, // Garante que o user_id está correto
-      published_at: publishAsDraft.value ? mangaData.value.published_at : new Date().toISOString(), // Só atualiza se não for rascunho
+      user_id: user.value?.id,
+      published_at: publishAsDraft.value ? mangaData.value.published_at : new Date().toISOString(),
       is_draft: publishAsDraft.value,
-      updated_at: new Date().toISOString(), // Sempre atualiza a data de atualização
+      updated_at: new Date().toISOString(),
       views: mangaData.value.views || 0,
       likes: mangaData.value.likes || 0,
       comments: mangaData.value.comments || 0,
@@ -570,8 +570,8 @@ const publishManga = async () => {
         publishAsDraft.value ? 'Rascunho salvo com sucesso!' : 'Mangá publicado com sucesso!',
         'success'
       );
-      loadAllMangasFromSupabase(); // Recarrega os dados no composable
-      router.push('/dashboard'); // Redireciona para o dashboard após publicar/salvar
+      loadAllMangasFromSupabase();
+      router.push('/dashboard');
     } else {
       await showToast(result.message, 'danger');
     }
