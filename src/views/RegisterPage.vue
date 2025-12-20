@@ -291,10 +291,10 @@ const goToLogin = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  /* Removido: background-image: url('@/assets/backgrounds/dark-red-2.jpg'); */
+  background-image: url('/darck-scan/assets/backgrounds/background.jpg'); /* Adicionado novamente */
   background-size: cover;
   background-position: center;
-  opacity: 0.1;
+  opacity: 0.1; /* Opacidade baixa para um efeito sutil */
   z-index: -2;
 }
 
