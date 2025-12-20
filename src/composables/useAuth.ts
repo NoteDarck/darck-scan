@@ -45,7 +45,7 @@ export const useAuth = () => {
   const userName = computed(() => user.value?.name || 'Usuário');
 
   // Login
-  const login = async (email: string, password: string): Promise<AuthResponse> => {
+  const login = async (identifier: string, password: string): Promise<AuthResponse> => { // 'email' mudou para 'identifier'
     isLoading.value = true;
     
     try {
@@ -57,11 +57,11 @@ export const useAuth = () => {
       const users = usersString ? JSON.parse(usersString) : [];
       
       const foundUser = users.find((u: any) => 
-        u.email === email && u.password === password
+        (u.email === identifier || u.name === identifier) && u.password === password // Verifica e-mail OU nome
       );
       
       if (!foundUser) {
-        throw new Error('E-mail ou senha incorretos');
+        throw new Error('E-mail, usuário ou senha incorretos'); // Mensagem de erro atualizada
       }
       
       // Remover senha antes de armazenar

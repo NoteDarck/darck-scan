@@ -29,12 +29,12 @@
             <div class="input-group">
               <ion-icon :icon="mail" class="input-icon"></ion-icon>
               <ion-item class="form-item" fill="outline">
-                <ion-label position="floating">E-mail</ion-label>
+                <ion-label position="floating">E-mail ou Usuário</ion-label>
                 <ion-input 
                   v-model="loginForm.email"
-                  type="email" 
+                  type="text" 
                   required
-                  placeholder="seu@email.com"
+                  placeholder="seu@email.com ou seu_usuario"
                 ></ion-input>
               </ion-item>
             </div>
@@ -128,7 +128,7 @@ const router = useRouter();
 const { login, loginWithGoogle, isLoading } = useAuth(); // Adicionar loginWithGoogle
 
 const loginForm = ref({
-  email: '',
+  email: '', // Este campo agora aceitará e-mail ou nome de usuário
   password: ''
 });
 
@@ -475,6 +475,10 @@ const goToRegister = () => {
   
   .logo-icon {
     font-size: 2rem;
+  }
+  
+  .terms-label {
+    font-size: 0.85rem;
   }
 }
 </style>
