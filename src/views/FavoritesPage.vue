@@ -43,7 +43,7 @@
             class="favorite-card"
           >
             <div class="card-image-container">
-              <img :src="getMangaImage(manga.image)" :alt="manga.title" />
+              <img :src="manga.cover || 'https://via.placeholder.com/500x700'" :alt="manga.title" />
               <div class="image-overlay"></div>
               <ion-button 
                 @click.stop="removeFromFavorites(manga)"
@@ -64,11 +64,11 @@
               <div class="manga-info">
                 <div class="info-item">
                   <ion-icon :icon="star" color="warning"></ion-icon>
-                  <span>{{ manga.rating }}</span>
+                  <span>{{ manga.likes || 0 }}</span> <!-- Usando likes como rating temporariamente -->
                 </div>
                 <div class="info-item">
                   <ion-icon :icon="book"></ion-icon>
-                  <span>{{ manga.chapters }} caps</span>
+                  <span>{{ manga.chapters?.length || 0 }} caps</span>
                 </div>
               </div>
               
@@ -108,37 +108,17 @@ import { heart, heartOutline, star, book } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
+import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
+import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
 
 const router = useRouter();
 const { isAuthenticated, userFavorites, toggleFavorite } = useAuth();
-
-// Dados dos mangás
-const allMangas = ref([
-  {
-    id: 1,
-    title: 'Solo Leveling',
-    author: 'Chugong',
-    image: 'solo-leveling',
-    rating: 4.9,
-    chapters: 179,
-    status: 'Completo',
-    genres: ['Ação', 'Fantasia', 'Aventura']
-  },
-  // ... outros mangás (mesma lista da HomePage)
-]);
+const { allStoredMangas, loadAllMangasFromLocalStorage } = useMangaData(); // Usar o composable
 
 // Computed para obter mangás favoritos
 const favoriteMangas = computed(() => {
-  return allMangas.value.filter(manga => userFavorites.value.includes(manga.id));
+  return allStoredMangas.value.filter(manga => manga.id !== undefined && userFavorites.value.includes(manga.id));
 });
-
-const getMangaImage = (imageName: string) => {
-  const imageMap: Record<string, string> = {
-    'solo-leveling': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    // ... outros mapeamentos
-  };
-  return imageMap[imageName] || 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
-};
 
 const goToLogin = () => {
   router.push('/login');
@@ -148,7 +128,11 @@ const goToHome = () => {
   router.push('/');
 };
 
-const removeFromFavorites = async (manga: any) => {
+const removeFromFavorites = async (manga: MangaData) => {
+  if (manga.id === undefined) {
+    await showToast('ID do mangá não disponível para remover dos favoritos.', 'danger');
+    return;
+  }
   toggleFavorite(manga.id);
   
   const toast = await toastController.create({
@@ -192,16 +176,24 @@ const clearAllFavorites = async () => {
   await alert.present();
 };
 
-const openMangaDetails = (manga: any) => {
+const openMangaDetails = (manga: MangaData) => {
   console.log('Abrindo mangá:', manga.title);
   // Navegar para página de detalhes
+  // router.push(`/manga/${manga.id}`);
+};
+
+const showToast = async (message: string, color: string = 'primary') => {
+  const toast = await toastController.create({
+    message,
+    duration: 2000,
+    color: color as any,
+    position: 'top'
+  });
+  await toast.present();
 };
 
 onMounted(() => {
-  // Carregar todos os mangás se necessário
-  if (allMangas.value.length === 0) {
-    // Aqui você poderia carregar de uma API
-  }
+  loadAllMangasFromLocalStorage(); // Garante que os mangás são carregados ao montar a página
 });
 </script>
 
@@ -379,63 +371,5 @@ onMounted(() => {
   .empty-favorites h2 {
     font-size: 1.3rem;
   }
-}
-</style>
-
-<style scoped>
-/* Estilos para a página de favoritos */
-.auth-required,
-.empty-favorites {
-  text-align: center;
-  padding: 50px 20px;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.auth-icon,
-.empty-icon {
-  font-size: 80px;
-  color: #4fc3f7;
-  margin-bottom: 20px;
-}
-
-.auth-required h2,
-.empty-favorites h2 {
-  color: white;
-  margin-bottom: 10px;
-}
-
-.auth-required p,
-.empty-favorites p {
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 30px;
-}
-
-.favorites-container {
-  padding: 20px;
-}
-
-.favorites-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.favorite-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-.card-image-container {
-  height: 180px;
-  overflow: hidden;
-}
-
-.card-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 </style>

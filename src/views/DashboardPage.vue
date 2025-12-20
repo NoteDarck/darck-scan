@@ -158,7 +158,7 @@
         <!-- Tab: Minhas Obras -->
         <div v-if="activeTab === 'works'" class="works-tab">
           <div class="works-header">
-            <h3>Obras Publicadas ({{ publishedMangas.length }})</h3>
+            <h3>Obras Publicadas ({{ userPublishedMangas.length }})</h3>
             <div class="sort-options">
               <ion-select v-model="sortBy" placeholder="Ordenar por" @ionChange="sortWorks">
                 <ion-select-option value="newest">Mais Recentes</ion-select-option>
@@ -170,7 +170,7 @@
           </div>
 
           <div class="works-grid">
-            <div v-for="manga in publishedMangas" :key="manga.id" class="work-card">
+            <div v-for="manga in userPublishedMangas" :key="manga.id" class="work-card">
               <div class="work-card-header">
                 <div class="work-status" :class="manga.status">
                   {{ getStatusLabel(manga.status) }}
@@ -182,7 +182,7 @@
                 </div>
               </div>
               
-              <div class="work-card-content" @click="viewManga(manga.id)">
+              <div class="work-card-content" @click="viewManga(manga.id!)">
                 <div class="work-cover">
                   <img :src="manga.cover || 'https://via.placeholder.com/150x200'" :alt="manga.title" />
                   <div class="work-overlay">
@@ -213,15 +213,15 @@
               </div>
 
               <div class="work-card-footer">
-                <ion-button size="small" fill="clear" @click.stop="editManga(manga.id)">
+                <ion-button size="small" fill="clear" @click.stop="editManga(manga.id!)">
                   <ion-icon :icon="create" slot="start"></ion-icon>
                   Editar
                 </ion-button>
-                <ion-button size="small" fill="clear" @click.stop="viewAnalytics(manga.id)">
+                <ion-button size="small" fill="clear" @click.stop="viewAnalytics(manga.id!)">
                   <ion-icon :icon="analytics" slot="start"></ion-icon>
                   Análises
                 </ion-button>
-                <ion-button size="small" fill="clear" @click.stop="addChapter(manga.id)">
+                <ion-button size="small" fill="clear" @click.stop="addChapter(manga.id!)">
                   <ion-icon :icon="add" slot="start"></ion-icon>
                   Capítulo
                 </ion-button>
@@ -229,7 +229,7 @@
             </div>
           </div>
 
-          <div v-if="publishedMangas.length === 0" class="empty-state">
+          <div v-if="userPublishedMangas.length === 0" class="empty-state">
             <ion-icon :icon="book" class="empty-icon"></ion-icon>
             <h4>Nenhuma obra publicada ainda</h4>
             <p>Comece criando sua primeira obra!</p>
@@ -240,7 +240,7 @@
         <!-- Tab: Rascunhos -->
         <div v-else-if="activeTab === 'drafts'" class="drafts-tab">
           <div class="drafts-header">
-            <h3>Rascunhos ({{ drafts.length }})</h3>
+            <h3>Rascunhos ({{ userDrafts.length }})</h3>
             <ion-button @click="goToPublish" size="small">
               <ion-icon :icon="add" slot="start"></ion-icon>
               Novo Rascunho
@@ -248,7 +248,7 @@
           </div>
 
           <div class="drafts-list">
-            <div v-for="draft in drafts" :key="draft.id" class="draft-card">
+            <div v-for="draft in userDrafts" :key="draft.id" class="draft-card">
               <div class="draft-info">
                 <h4>{{ draft.title || 'Sem título' }}</h4>
                 <p class="draft-preview">
@@ -260,20 +260,20 @@
                 </div>
               </div>
               <div class="draft-actions">
-                <ion-button size="small" @click="continueDraft(draft.id)">
+                <ion-button size="small" @click="continueDraft(draft.id!)">
                   Continuar
                 </ion-button>
-                <ion-button size="small" fill="outline" @click="previewDraft(draft.id)">
+                <ion-button size="small" fill="outline" @click="previewDraft(draft.id!)">
                   Visualizar
                 </ion-button>
-                <ion-button size="small" fill="clear" color="danger" @click="deleteDraft(draft.id)">
+                <ion-button size="small" fill="clear" color="danger" @click="deleteDraft(draft.id!)">
                   <ion-icon :icon="trash" slot="icon-only"></ion-icon>
                 </ion-button>
               </div>
             </div>
           </div>
 
-          <div v-if="drafts.length === 0" class="empty-state">
+          <div v-if="userDrafts.length === 0" class="empty-state">
             <ion-icon :icon="document" class="empty-icon"></ion-icon>
             <h4>Nenhum rascunho salvo</h4>
             <p>Comece a criar uma nova obra e salve como rascunho!</p>
@@ -537,7 +537,6 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
-  IonMenuButton,
   toastController,
   alertController,
   modalController
@@ -573,10 +572,22 @@ import {
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
+import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
 import Chart from 'chart.js/auto';
+import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
 
 const router = useRouter();
 const { user, isAuthenticated } = useAuth();
+const { allStoredMangas, loadAllMangasFromLocalStorage, updateManga } = useMangaData(); // Usar o composable
+
+// Computed properties para mangás do usuário
+const userPublishedMangas = computed(() => {
+  return allStoredMangas.value.filter(m => m.userId === user.value?.id && !m.isDraft);
+});
+
+const userDrafts = computed(() => {
+  return allStoredMangas.value.filter(m => m.userId === user.value?.id && m.isDraft);
+});
 
 // Verificar autenticação
 onMounted(() => {
@@ -617,8 +628,6 @@ const stats = ref({
 });
 
 // Dados
-const publishedMangas = ref<any[]>([]);
-const drafts = ref<any[]>([]);
 const comments = ref<any[]>([]);
 const topWorks = ref<any[]>([]);
 const peakHours = ref<any[]>([]);
@@ -627,12 +636,7 @@ const chapterEngagement = ref<any[]>([]);
 // Carregar dados do dashboard
 const loadDashboardData = async () => {
   try {
-    // Carregar obras publicadas
-    const savedMangas = JSON.parse(localStorage.getItem('publishedMangas') || '[]');
-    publishedMangas.value = savedMangas.filter((m: any) => m.userId === user.value?.id && !m.isDraft);
-    
-    // Carregar rascunhos
-    drafts.value = savedMangas.filter((m: any) => m.userId === user.value?.id && m.isDraft);
+    loadAllMangasFromLocalStorage(); // Recarrega os mangás do local storage
     
     // Calcular estatísticas
     calculateStats();
@@ -657,7 +661,7 @@ const loadDashboardData = async () => {
 
 // Calcular estatísticas
 const calculateStats = () => {
-  const works = publishedMangas.value;
+  const works = userPublishedMangas.value;
   
   stats.value = {
     totalWorks: works.length,
@@ -725,7 +729,7 @@ const filteredComments = computed(() => {
 // Carregar análises
 const loadAnalytics = () => {
   // Obras mais populares
-  topWorks.value = [...publishedMangas.value]
+  topWorks.value = [...userPublishedMangas.value]
     .sort((a, b) => (b.views || 0) - (a.views || 0))
     .slice(0, 5)
     .map((m, i) => ({
@@ -895,7 +899,7 @@ const continueDraft = (id: number) => {
 };
 
 const previewDraft = (id: number) => {
-  const draft = drafts.value.find(d => d.id === id);
+  const draft = userDrafts.value.find(d => d.id === id);
   if (draft) {
     // Abrir preview
     showToast('Visualizando rascunho...', 'info');
@@ -914,7 +918,9 @@ const deleteDraft = async (id: number) => {
       {
         text: 'Excluir',
         handler: () => {
-          drafts.value = drafts.value.filter(d => d.id !== id);
+          const updatedMangas = allStoredMangas.value.filter(m => m.id !== id);
+          localStorage.setItem('publishedMangas', JSON.stringify(updatedMangas));
+          loadAllMangasFromLocalStorage(); // Recarrega os dados após a exclusão
           showToast('Rascunho excluído', 'success');
         }
       }
@@ -1062,7 +1068,7 @@ const getTypeLabel = (type: string): string => {
   return typeMap[type] || type;
 };
 
-const openWorkMenu = (manga: any) => {
+const openWorkMenu = (manga: MangaData) => {
   // Implementar menu de contexto
   showToast(`Abrindo menu para ${manga.title}`, 'info');
 };
@@ -1070,20 +1076,20 @@ const openWorkMenu = (manga: any) => {
 const sortWorks = () => {
   switch (sortBy.value) {
     case 'newest':
-      publishedMangas.value.sort((a, b) => 
+      userPublishedMangas.value.sort((a, b) => 
         new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime()
       );
       break;
     case 'oldest':
-      publishedMangas.value.sort((a, b) => 
+      userPublishedMangas.value.sort((a, b) => 
         new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime()
       );
       break;
     case 'views':
-      publishedMangas.value.sort((a, b) => (b.views || 0) - (a.views || 0));
+      userPublishedMangas.value.sort((a, b) => (b.views || 0) - (a.views || 0));
       break;
     case 'likes':
-      publishedMangas.value.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+      userPublishedMangas.value.sort((a, b) => (b.likes || 0) - (a.likes || 0));
       break;
   }
 };

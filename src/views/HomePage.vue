@@ -129,22 +129,22 @@
             </ion-button>
           </div>
 
-          <div class="manga-grid">
+          <div v-if="filteredMangas.length > 0" class="manga-grid">
             <ion-card 
-              v-for="(manga, index) in filteredMangas" 
-              :key="index" 
+              v-for="manga in filteredMangas" 
+              :key="manga.id" 
               class="manga-card"
               @click="openMangaDetails(manga)"
             >
               <div class="card-image-container">
-                <img :src="getMangaImage(manga.image)" :alt="manga.title" class="manga-image" />
+                <img :src="manga.cover || 'https://via.placeholder.com/600x800'" :alt="manga.title" class="manga-image" />
                 <div class="image-overlay"></div>
                 <div class="manga-badge" :class="manga.type.toLowerCase()">
                   {{ manga.type }}
                 </div>
                 <div class="manga-rating">
                   <ion-icon :icon="star" class="rating-icon"></ion-icon>
-                  <span>{{ manga.rating }}</span>
+                  <span>{{ manga.likes || 0 }}</span> <!-- Usando likes como rating temporariamente -->
                 </div>
                 <ion-button 
                   @click.stop="toggleFavorite(manga)"
@@ -153,8 +153,8 @@
                   size="small"
                 >
                   <ion-icon 
-                    :icon="isFavorite(manga.id) ? heart : heartOutline" 
-                    :color="isFavorite(manga.id) ? 'danger' : 'light'"
+                    :icon="isFavorite(manga.id!) ? heart : heartOutline" 
+                    :color="isFavorite(manga.id!) ? 'danger' : 'light'"
                   ></ion-icon>
                 </ion-button>
               </div>
@@ -168,12 +168,12 @@
                 <div class="manga-info">
                   <div class="info-item">
                     <ion-icon :icon="book" class="info-icon"></ion-icon>
-                    <span>{{ manga.chapters }} caps</span>
+                    <span>{{ manga.chapters?.length || 0 }} caps</span>
                   </div>
                   <div class="info-item">
                     <ion-icon :icon="flag" class="info-icon"></ion-icon>
                     <span class="manga-status" :class="manga.status.toLowerCase().replace(' ', '-')">
-                      {{ manga.status }}
+                      {{ getStatusLabel(manga.status) }}
                     </span>
                   </div>
                 </div>
@@ -193,7 +193,13 @@
             </ion-card>
           </div>
 
-          <div class="load-more-container" v-if="filteredMangas.length < mangas.length">
+          <div v-else class="empty-state">
+            <ion-icon :icon="search" class="empty-icon"></ion-icon>
+            <h4>Nenhum mangá encontrado</h4>
+            <p>Tente ajustar sua pesquisa ou filtros de gênero.</p>
+          </div>
+
+          <div class="load-more-container" v-if="filteredMangas.length < allPublishedMangas.length">
             <ion-button expand="block" @click="loadMore" class="load-more-button">
               <ion-icon :icon="add" slot="start"></ion-icon>
               Carregar Mais
@@ -227,8 +233,8 @@ import {
   IonCardSubtitle,
   IonCardContent,
   IonBadge,
-  IonChip, // Importado IonChip
-  modalController, // Importado modalController
+  IonChip,
+  modalController,
   toastController
 } from '@ionic/vue';
 import { 
@@ -250,13 +256,15 @@ import {
   arrowForward,
   analytics,
   cloudUpload,
-  closeCircle, // Importado closeCircle para remover tags
-  chevronForward // Importado chevronForward para indicar que é clicável
+  closeCircle,
+  chevronForward
 } from 'ionicons/icons';
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import GenreSelectModal from '@/components/GenreSelectModal.vue'; // Importado o novo modal
+import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
+import GenreSelectModal from '@/components/GenreSelectModal.vue';
+import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
 
 const router = useRouter();
 const { 
@@ -267,6 +275,8 @@ const {
   toggleFavorite: authToggleFavorite,
   isFavorite
 } = useAuth();
+
+const { publishedMangas: allPublishedMangas, loadAllMangasFromLocalStorage } = useMangaData(); // Usar o composable
 
 // Array de backgrounds CSS
 const backgroundStyles = ref([
@@ -280,7 +290,7 @@ const backgroundStyles = ref([
 const currentBackgroundIndex = ref(0);
 const searchQuery = ref('');
 const visibleCount = ref(8);
-const selectedGenres = ref<string[]>([]); // Estado para gêneros selecionados
+const selectedGenres = ref<string[]>([]);
 
 // Gêneros disponíveis (copiado de PublishPage.vue para consistência)
 const availableGenres = ref([
@@ -294,136 +304,9 @@ const currentBackgroundStyle = computed(() => {
   return backgroundStyles.value[currentBackgroundIndex.value];
 });
 
-// Dados dos mangás/manhwas
-const mangas = ref([
-  {
-    id: 1,
-    title: 'Solo Leveling',
-    author: 'Chugong',
-    image: 'solo-leveling',
-    type: 'Manhwa',
-    rating: 4.9,
-    chapters: 179,
-    status: 'Completo',
-    genres: ['Ação', 'Fantasia', 'Aventura']
-  },
-  {
-    id: 2,
-    title: 'One Piece',
-    author: 'Eiichiro Oda',
-    image: 'one-piece',
-    type: 'Mangá',
-    rating: 4.8,
-    chapters: 1100,
-    status: 'Em andamento',
-    genres: ['Aventura', 'Fantasia', 'Comédia']
-  },
-  {
-    id: 3,
-    title: 'Attack on Titan',
-    author: 'Hajime Isayama',
-    image: 'aot',
-    type: 'Mangá',
-    rating: 4.7,
-    chapters: 139,
-    status: 'Completo',
-    genres: ['Ação', 'Fantasia Sombria', 'Drama']
-  },
-  {
-    id: 4,
-    title: 'Tower of God',
-    author: 'SIU',
-    image: 'tower-of-god',
-    type: 'Manhwa',
-    rating: 4.6,
-    chapters: 550,
-    status: 'Em andamento',
-    genres: ['Fantasia', 'Ação', 'Mistério']
-  },
-  {
-    id: 5,
-    title: 'Demon Slayer',
-    author: 'Koyoharu Gotouge',
-    image: 'demon-slayer',
-    type: 'Mangá',
-    rating: 4.5,
-    chapters: 205,
-    status: 'Completo',
-    genres: ['Ação', 'Fantasia', 'Histórico']
-  },
-  {
-    id: 6,
-    title: 'The Beginning After the End',
-    author: 'TurtleMe',
-    image: 'tbate',
-    type: 'Manhwa',
-    rating: 4.8,
-    chapters: 175,
-    status: 'Em andamento',
-    genres: ['Fantasia', 'Reencarnação', 'Ação']
-  },
-  {
-    id: 7,
-    title: 'Berserk',
-    author: 'Kentaro Miura',
-    image: 'berserk',
-    type: 'Mangá',
-    rating: 4.9,
-    chapters: 374,
-    status: 'Em andamento',
-    genres: ['Fantasia Sombria', 'Ação', 'Horror']
-  },
-  {
-    id: 8,
-    title: 'Omniscient Reader',
-    author: 'Sing Shong',
-    image: 'orv',
-    type: 'Manhwa',
-    rating: 4.7,
-    chapters: 150,
-    status: 'Em andamento',
-    genres: ['Fantasia', 'Ação', 'Mistério']
-  }
-]);
-
-const goToDashboard = () => {
-  if (!isAuthenticated.value) {
-    showToast('Faça login para acessar o painel!', 'warning');
-    goToLogin();
-  } else {
-    router.push('/dashboard');
-  }
-};
-
-// No script setup da HomePage
-const goToPublish = () => {
-  if (!isAuthenticated.value) {
-    showToast('Faça login para publicar mangás!', 'warning');
-    goToLogin();
-  } else {
-    router.push('/publish');
-  }
-};
-
-// Função para obter imagem do mangá
-const getMangaImage = (imageName: string) => {
-  const imageMap: Record<string, string> = {
-    'solo-leveling': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'one-piece': 'https://images.unsplash.com/photo-1639322537228-f710d846310a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'aot': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'tower-of-god': 'https://images.unsplash.com/photo-1639322537502-9e1f6bf8c5c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'demon-slayer': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'tbate': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'berserk': 'https://images.unsplash.com/photo-1639322537228-f710d846310a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-    'orv': 'https://images.unsplash.com/photo-1635805737707-575885ab0820?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-  };
-  
-  return imageMap[imageName] || 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
-};
-
 // Filtrar mangás
 const filteredMangas = computed(() => {
-  let filtered = mangas.value;
+  let filtered: MangaData[] = allPublishedMangas.value;
 
   // Filtrar por texto de pesquisa
   if (searchQuery.value) {
@@ -478,7 +361,7 @@ const goToSettings = () => {
 };
 
 const seeAllPopular = () => {
-  visibleCount.value = mangas.value.length;
+  visibleCount.value = allPublishedMangas.value.length;
 };
 
 const logout = async () => {
@@ -501,14 +384,21 @@ const loadMore = () => {
   visibleCount.value += 4;
 };
 
-const openMangaDetails = (manga: any) => {
+const openMangaDetails = (manga: MangaData) => {
   console.log('Abrindo detalhes do mangá:', manga.title);
+  // Implementar navegação para a página de detalhes do mangá
+  // router.push(`/manga/${manga.id}`);
 };
 
-const toggleFavorite = async (manga: any) => {
+const toggleFavorite = async (manga: MangaData) => {
   if (!isAuthenticated.value) {
     await showToast('Faça login para adicionar aos favoritos!', 'warning');
     goToLogin();
+    return;
+  }
+
+  if (manga.id === undefined) {
+    await showToast('ID do mangá não disponível para favoritar.', 'danger');
     return;
   }
 
@@ -551,10 +441,21 @@ const removeGenreTag = (genreToRemove: string) => {
   selectedGenres.value = selectedGenres.value.filter(genre => genre !== genreToRemove);
 };
 
+const getStatusLabel = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    'em-andamento': 'Em Andamento',
+    'completo': 'Completo',
+    'hiato': 'Hiato',
+    'cancelado': 'Cancelado',
+  };
+  return statusMap[status] || status;
+};
+
 onMounted(() => {
   if (!localStorage.getItem('users')) {
     localStorage.setItem('users', JSON.stringify([]));
   }
+  loadAllMangasFromLocalStorage(); // Garante que os mangás são carregados ao montar a página
 });
 </script>
 
@@ -1056,6 +957,28 @@ ion-card-content {
   max-width: 300px;
   margin: 0 auto;
   font-weight: 600;
+}
+
+/* Estado Vazio */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.empty-state h4 {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  margin: 0 0 1.5rem 0;
 }
 
 /* Responsividade */

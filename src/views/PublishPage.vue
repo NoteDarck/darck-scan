@@ -484,19 +484,47 @@ import {
   cloudUpload
 } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router'; // Importar useRoute
 import { useAuth } from '@/composables/useAuth';
+import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
+import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
 
 const router = useRouter();
+const route = useRoute(); // Usar useRoute para acessar query params
 const { isAuthenticated, user } = useAuth();
+const { allStoredMangas, updateManga, getMangaById, loadAllMangasFromLocalStorage } = useMangaData(); // Usar o composable
 
 // Verificar autenticação
 onMounted(() => {
   if (!isAuthenticated.value) {
-    // Adiciona um pequeno atraso para permitir que as transições do Ionic sejam concluídas
     setTimeout(() => {
       router.push('/login');
-    }, 100); // 100ms de atraso
+    }, 100);
+  } else {
+    // Carregar mangá para edição ou rascunho
+    const editMangaId = route.query.edit ? parseInt(route.query.edit as string) : null;
+    const draftMangaId = route.query.draft ? parseInt(route.query.draft as string) : null;
+
+    if (editMangaId) {
+      const mangaToEdit = getMangaById(editMangaId);
+      if (mangaToEdit) {
+        mangaData.value = { ...mangaToEdit };
+        currentStep.value = 1; // Começa no passo 1 para edição
+      } else {
+        showToast('Mangá não encontrado para edição.', 'danger');
+        router.replace('/publish'); // Redireciona para nova publicação
+      }
+    } else if (draftMangaId) {
+      const draftToEdit = getMangaById(draftMangaId);
+      if (draftToEdit) {
+        mangaData.value = { ...draftToEdit };
+        publishAsDraft.value = true; // Marca como rascunho
+        currentStep.value = 1; // Começa no passo 1 para rascunho
+      } else {
+        showToast('Rascunho não encontrado.', 'danger');
+        router.replace('/publish');
+      }
+    }
   }
 });
 
@@ -518,7 +546,7 @@ const allowComments = ref(true);
 const notifyFollowers = ref(true);
 
 // Dados do mangá
-const mangaData = ref({
+const mangaData = ref<MangaData>({
   title: '',
   author: user.value?.name || '',
   synopsis: '',
@@ -528,12 +556,12 @@ const mangaData = ref({
   type: 'mangá',
   status: 'em-andamento',
   ageRating: 'L',
-  chapters: [] as Array<{
-    number: number;
-    title: string;
-    pages: string[];
-    createdAt: string;
-  }>
+  chapters: [],
+  userId: user.value?.id, // Garante que o userId seja definido
+  publishedAt: undefined,
+  isDraft: false,
+  views: 0,
+  likes: 0
 });
 
 // Gêneros disponíveis
@@ -748,20 +776,28 @@ const publishManga = async () => {
     // Simular publicação
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Salvar no localStorage (simulação)
-    const publishedMangas = JSON.parse(localStorage.getItem('publishedMangas') || '[]');
-    const newManga = {
-      id: Date.now(),
+    // Preparar dados do mangá
+    const finalMangaData: MangaData = {
       ...mangaData.value,
       userId: user.value?.id,
       publishedAt: new Date().toISOString(),
       isDraft: publishAsDraft.value,
-      views: 0,
-      likes: 0
+      views: mangaData.value.views || 0,
+      likes: mangaData.value.likes || 0
     };
+
+    // Se for uma edição, atualiza o mangá existente
+    if (mangaData.value.id) {
+      updateManga(finalMangaData);
+    } else {
+      // Se for um novo mangá, adiciona um ID e salva
+      finalMangaData.id = Date.now(); // Gerar um ID único
+      const currentMangas = JSON.parse(localStorage.getItem('publishedMangas') || '[]');
+      currentMangas.push(finalMangaData);
+      localStorage.setItem('publishedMangas', JSON.stringify(currentMangas));
+    }
     
-    publishedMangas.push(newManga);
-    localStorage.setItem('publishedMangas', JSON.stringify(publishedMangas));
+    loadAllMangasFromLocalStorage(); // Recarrega os dados no composable
 
     await showToast(
       publishAsDraft.value ? 'Rascunho salvo com sucesso!' : 'Mangá publicado com sucesso!',
@@ -769,8 +805,9 @@ const publishManga = async () => {
     );
 
     // Redirecionar para a página do mangá ou dashboard
-    router.push('/');
+    router.push('/dashboard'); // Redireciona para o dashboard após publicar/salvar
   } catch (error) {
+    console.error('Erro ao publicar mangá:', error);
     await showToast('Erro ao publicar mangá', 'danger');
   } finally {
     isPublishing.value = false;

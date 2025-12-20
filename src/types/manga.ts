@@ -21,6 +21,8 @@ export interface MangaData {
   userId?: number;
   publishedAt?: string;
   isDraft?: boolean;
-  views?: number;
-  likes?: number;
+  views?: number; // Adicionado como opcional
+  likes?: number; // Adicionado como opcional
+  comments?: number; // Adicionado como opcional
+  updatedAt?: string; // Adicionado para rascunhos
 }
