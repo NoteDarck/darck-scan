@@ -581,7 +581,10 @@ const { user, isAuthenticated } = useAuth();
 // Verificar autenticação
 onMounted(() => {
   if (!isAuthenticated.value) {
-    router.push('/login');
+    // Adiciona um pequeno atraso para permitir que as transições do Ionic sejam concluídas
+    setTimeout(() => {
+      router.push('/login');
+    }, 100); // 100ms de atraso
   } else {
     loadDashboardData();
   }
