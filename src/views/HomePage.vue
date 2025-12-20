@@ -105,21 +105,17 @@
             </ion-searchbar>
           </div>
 
-          <!-- Nova seção de Gêneros -->
-          <div class="genres-filter-container">
-            <ion-item class="genre-select-item">
+          <!-- Nova seção de Gêneros com modal -->
+          <div class="genres-display-container">
+            <ion-item lines="none" class="genre-selector-item" @click="openGenreSelectModal">
               <ion-label>Gêneros</ion-label>
-              <ion-select 
-                v-model="selectedGenres" 
-                multiple="true" 
-                placeholder="Selecione os gêneros"
-                class="custom-select"
-                interface="popover"
-              >
-                <ion-select-option v-for="genre in availableGenres" :key="genre" :value="genre">
+              <div class="selected-genres-tags" slot="end">
+                <ion-chip v-for="genre in selectedGenres" :key="genre" color="primary" class="genre-chip">
                   {{ genre }}
-                </ion-select-option>
-              </ion-select>
+                  <ion-icon :icon="closeCircle" @click.stop="removeGenreTag(genre)"></ion-icon>
+                </ion-chip>
+                <ion-icon :icon="chevronForward" v-if="selectedGenres.length === 0"></ion-icon>
+              </div>
             </ion-item>
           </div>
         </div>
@@ -231,8 +227,8 @@ import {
   IonCardSubtitle,
   IonCardContent,
   IonBadge,
-  IonSelect, // Importado IonSelect
-  IonSelectOption, // Importado IonSelectOption
+  IonChip, // Importado IonChip
+  modalController, // Importado modalController
   toastController
 } from '@ionic/vue';
 import { 
@@ -253,11 +249,14 @@ import {
   search,
   arrowForward,
   analytics,
-  cloudUpload
+  cloudUpload,
+  closeCircle, // Importado closeCircle para remover tags
+  chevronForward // Importado chevronForward para indicar que é clicável
 } from 'ionicons/icons';
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
+import GenreSelectModal from '@/components/GenreSelectModal.vue'; // Importado o novo modal
 
 const router = useRouter();
 const { 
@@ -281,7 +280,7 @@ const backgroundStyles = ref([
 const currentBackgroundIndex = ref(0);
 const searchQuery = ref('');
 const visibleCount = ref(8);
-const selectedGenres = ref<string[]>([]); // Novo estado para gêneros selecionados
+const selectedGenres = ref<string[]>([]); // Estado para gêneros selecionados
 
 // Gêneros disponíveis (copiado de PublishPage.vue para consistência)
 const availableGenres = ref([
@@ -530,6 +529,28 @@ const showToast = async (message: string, color: string = 'primary') => {
   await toast.present();
 };
 
+// Função para abrir o modal de seleção de gêneros
+const openGenreSelectModal = async () => {
+  const modal = await modalController.create({
+    component: GenreSelectModal,
+    componentProps: {
+      initialSelectedGenres: selectedGenres.value,
+    },
+  });
+
+  modal.present();
+
+  const { data, role } = await modal.onDidDismiss();
+  if (role === 'confirm' && data) {
+    selectedGenres.value = data;
+  }
+};
+
+// Função para remover uma tag de gênero diretamente
+const removeGenreTag = (genreToRemove: string) => {
+  selectedGenres.value = selectedGenres.value.filter(genre => genre !== genreToRemove);
+};
+
 onMounted(() => {
   if (!localStorage.getItem('users')) {
     localStorage.setItem('users', JSON.stringify([]));
@@ -720,14 +741,14 @@ onMounted(() => {
   margin-left: 10px;
 }
 
-/* Gêneros Filter Container */
-.genres-filter-container {
+/* Gêneros Display Container (novo) */
+.genres-display-container {
   max-width: 600px;
-  margin: 0 auto 2rem; /* Ajustado margin-bottom */
+  margin: 0 auto 2rem;
   padding: 0 1rem;
 }
 
-.genre-select-item {
+.genre-selector-item {
   --background: rgba(255, 255, 255, 0.05);
   --border-color: rgba(255, 255, 255, 0.1);
   --color: white;
@@ -735,18 +756,45 @@ onMounted(() => {
   border-radius: 12px;
   margin: 0;
   padding-left: 1rem;
+  cursor: pointer;
 }
 
-.genre-select-item ion-label {
+.genre-selector-item ion-label {
   color: rgba(255, 255, 255, 0.7);
   font-weight: 400;
 }
 
-.custom-select {
-  --placeholder-color: rgba(255, 255, 255, 0.5);
+.selected-genres-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  max-width: 70%; /* Limita a largura para não quebrar o layout */
+  justify-content: flex-end;
+}
+
+.genre-chip {
+  --background: rgba(255, 0, 0, 0.2);
   --color: white;
-  --padding-start: 0;
-  --padding-end: 1rem;
+  --border-radius: 16px;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.genre-chip ion-icon {
+  font-size: 1rem;
+  margin-left: 4px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.genre-chip ion-icon:hover {
+  color: white;
+}
+
+.selected-genres-tags ion-icon[name="chevron-forward"] {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.2rem;
 }
 
 /* Content container */
