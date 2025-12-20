@@ -1,49 +1,24 @@
 // src/firebase/config.ts
-import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut,
-  onAuthStateChanged,
-  User,
-  updateProfile,
-  sendPasswordResetEmail,
-  GoogleAuthProvider, // Adicionado
-  signInWithPopup // Adicionado
-} from 'firebase/auth';
-import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+// Este arquivo não é mais usado diretamente para autenticação ou banco de dados,
+// pois estamos migrando para o Supabase.
+// As importações existentes em outros arquivos que usavam 'auth' ou 'db'
+// precisarão ser atualizadas para apontar para o Supabase.
 
-const firebaseConfig = {
-  apiKey: "AIzaSyABC123DEF456ghi789jkl012mno345pqr",
-  authDomain: "darck-scan-app.firebaseapp.com",
-  projectId: "darck-scan-app",
-  storageBucket: "darck-scan-app.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890abcdef"
-};
-
-// Inicialize o Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-export { 
-  app, 
-  auth, 
-  db, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  sendPasswordResetEmail,
-  GoogleAuthProvider, // Exportado
-  signInWithPopup, // Exportado
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where
-};
-export type { User };
+// Exportações vazias para evitar erros de importação em arquivos que ainda não foram atualizados.
+export const app = null;
+export const auth = null;
+export const db = null;
+export const createUserWithEmailAndPassword = null;
+export const signInWithEmailAndPassword = null;
+export const signOut = null;
+export const onAuthStateChanged = null;
+export const updateProfile = null;
+export const sendPasswordResetEmail = null;
+export const GoogleAuthProvider = null;
+export const signInWithPopup = null;
+export const collection = null;
+export const addDoc = null;
+export const getDocs = null;
+export const query = null;
+export const where = null;
+export type User = any;
