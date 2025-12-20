@@ -37,3 +37,5 @@ To maintain a cohesive and efficient codebase, please adhere to the following gu
     *   For persistent data storage (e.g., published mangas, drafts, user favorites), continue to use `localStorage` as demonstrated in `useAuth.ts` and `DashboardPage.vue`.
     *   While Firebase configuration exists in `src/firebase/config.ts`, actual backend integration with Firebase is not yet implemented. If server-side features (e.g., real-time database, cloud functions) are required, a separate discussion for full Firebase integration will be needed.
 *   **File Structure**: Adhere to the existing file structure (e.g., `src/views` for pages, `src/composables` for reusable logic, `src/types` for type definitions).
+
+Directory names MUST be all lower-case (src/pages, src/components, etc.). File names may use mixed-case if you like.
