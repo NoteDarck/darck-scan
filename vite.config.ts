@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [vue()],
-  base: '/darckscan/', // Alterado para o nome do seu repositório para GitHub Pages
+  base: '/darck-scan/', // Corrigido para o nome EXATO do seu repositório para GitHub Pages
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
