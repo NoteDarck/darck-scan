@@ -20,7 +20,7 @@ export interface MangaData {
   chapters: MangaChapter[];
   user_id?: string; // Alterado para user_id (string UUID do Supabase)
   published_at?: string; // Alterado para published_at
-  is_draft?: boolean; // Alterado para is_draft
+  is_draft: boolean; // Alterado para ser um booleano obrigatório
   views?: number;
   likes?: number;
   comments?: number;

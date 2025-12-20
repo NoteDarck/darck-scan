@@ -354,8 +354,13 @@ const loadMangaForEdit = async (mangaId: number, isDraftMode: boolean = false) =
       router.push('/dashboard');
       return;
     }
-    mangaData.value = { ...mangaToEdit, id: mangaToEdit.id };
-    publishAsDraft.value = isDraftMode || mangaToEdit.is_draft;
+    // Ensure is_draft is always a boolean when assigning to mangaData.value
+    mangaData.value = { 
+      ...mangaToEdit, 
+      id: mangaToEdit.id,
+      is_draft: mangaToEdit.is_draft ?? false // Provide a default if undefined
+    };
+    publishAsDraft.value = isDraftMode || mangaData.value.is_draft;
     currentStep.value = 1;
   } else {
     showToast(isDraftMode ? 'Rascunho não encontrado.' : 'Mangá não encontrado para edição.', 'danger');
@@ -388,7 +393,7 @@ const mangaData = ref<MangaData>({
   chapters: [],
   user_id: user.value?.id,
   published_at: undefined,
-  is_draft: false,
+  is_draft: false, // Agora é um booleano obrigatório
   views: 0,
   likes: 0,
   comments: 0,
@@ -549,7 +554,7 @@ const publishManga = async () => {
       ...mangaData.value,
       user_id: user.value?.id,
       published_at: publishAsDraft.value ? mangaData.value.published_at : new Date().toISOString(),
-      is_draft: publishAsDraft.value,
+      is_draft: publishAsDraft.value, 
       updated_at: new Date().toISOString(),
       views: mangaData.value.views || 0,
       likes: mangaData.value.likes || 0,
