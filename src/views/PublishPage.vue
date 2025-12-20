@@ -488,6 +488,7 @@ import { useRouter, useRoute } from 'vue-router'; // Importar useRoute
 import { useAuth } from '@/composables/useAuth';
 import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
 import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
+import { createMangaFile } from '@/utils/mangaFileGenerator';
 
 const router = useRouter();
 const route = useRoute(); // Usar useRoute para acessar query params
@@ -604,11 +605,11 @@ const handleCoverUpload = (event: Event) => {
   if (input.files && input.files[0]) {
     const file = input.files[0];
     const reader = new FileReader();
-    
+
     reader.onload = (e) => {
       mangaData.value.cover = e.target?.result as string;
     };
-    
+
     reader.readAsDataURL(file);
   }
 };
@@ -695,7 +696,7 @@ const saveNewChapter = () => {
 
   // Ordenar capítulos por número
   mangaData.value.chapters.sort((a, b) => a.number - b.number);
-  
+
   addingNewChapter.value = false;
   showToast('Capítulo adicionado com sucesso!', 'success');
 };
@@ -796,7 +797,15 @@ const publishManga = async () => {
       currentMangas.push(finalMangaData);
       localStorage.setItem('publishedMangas', JSON.stringify(currentMangas));
     }
-    
+
+    // Criar arquivo Vue para o mangá (somente se não for rascunho)
+    if (!publishAsDraft.value) {
+      const fileCreated = await createMangaFile(finalMangaData);
+      if (fileCreated) {
+        console.log('Manga file created successfully');
+      }
+    }
+
     loadAllMangasFromLocalStorage(); // Recarrega os dados no composable
 
     await showToast(
@@ -1682,33 +1691,33 @@ ion-button {
   .publish-container {
     padding: 0.5rem;
   }
-  
+
   .step-content {
     padding: 1.5rem;
   }
-  
+
   .form-row {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .review-card {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
-  
+
   .chapter-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .chapter-actions {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
@@ -1718,21 +1727,21 @@ ion-button {
   .progress-steps {
     padding: 0;
   }
-  
+
   .step-label {
     font-size: 0.75rem;
   }
-  
+
   .step-number {
     width: 32px;
     height: 32px;
     font-size: 1rem;
   }
-  
+
   .step-content {
     padding: 1rem;
   }
-  
+
   .step-title {
     font-size: 1.5rem;
   }

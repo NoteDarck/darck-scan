@@ -8,7 +8,8 @@ import RegisterPage from '@/views/RegisterPage.vue'
 import FavoritesPage from '@/views/FavoritesPage.vue'
 import PublishPage from '@/views/PublishPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
-import SettingsPage from '@/views/SettingsPage.vue' // Importar SettingsPage
+import SettingsPage from '@/views/SettingsPage.vue'
+import MangaDetailPage from '@/views/MangaDetailPage.vue'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -44,10 +45,15 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/settings', // Nova rota
+    path: '/settings',
     name: 'Settings',
     component: SettingsPage,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/manga/:id',
+    name: 'MangaDetail',
+    component: MangaDetailPage
   }
 ]
 

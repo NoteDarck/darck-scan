@@ -59,10 +59,6 @@
             <ion-icon :icon="time" slot="start" class="menu-icon"></ion-icon>
             <ion-label>Recentes</ion-label>
           </ion-item>
-          <ion-item @click="changeBackground" class="menu-item">
-            <ion-icon :icon="image" slot="start" class="menu-icon"></ion-icon>
-            <ion-label>Alterar Fundo</ion-label>
-          </ion-item>
           <ion-item v-if="isAuthenticated" @click="goToDashboard" class="menu-item">
             <ion-icon :icon="analytics" slot="start" class="menu-icon"></ion-icon>
             <ion-label>Meu Painel</ion-label>
@@ -380,10 +376,6 @@ const logout = async () => {
   }
 };
 
-const changeBackground = () => {
-  currentBackgroundIndex.value = (currentBackgroundIndex.value + 1) % backgroundStyles.value.length;
-};
-
 const filterMangas = (event: any) => {
   searchQuery.value = event.target.value.toLowerCase();
 };
@@ -393,7 +385,23 @@ const loadMore = () => {
 };
 
 const openMangaDetails = (manga: MangaData) => {
-  console.log('Abrindo detalhes do mangá:', manga.title);
+  // Check if manga file exists in localStorage
+  const mangaFiles = JSON.parse(localStorage.getItem('mangaFiles') || '{}');
+  const safeTitle = manga.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  const fileName = `Manga${manga.id}_${safeTitle}.vue`;
+
+  if (mangaFiles[fileName]) {
+    // If manga file exists, navigate to a dynamic route
+    router.push(`/manga/${manga.id}`);
+  } else {
+    // If no file exists, show a toast
+    showToast('Detalhes do mangá não disponíveis ainda', 'warning');
+  }
 };
 
 const toggleFavorite = async (manga: MangaData) => {
