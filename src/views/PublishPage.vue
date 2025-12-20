@@ -8,7 +8,6 @@
         <ion-title>Publicar Manga</ion-title>
       </ion-toolbar>
     </ion-header>
-
     <ion-content class="publish-content">
       <div class="publish-container">
         <!-- Progress Steps -->
@@ -33,7 +32,7 @@
         <div v-if="currentStep === 1" class="step-content">
           <h2 class="step-title">Informações do Mangá</h2>
           <p class="step-subtitle">Preencha os dados básicos da sua obra</p>
-
+          
           <form class="publish-form">
             <!-- Upload da Capa -->
             <div class="form-section">
@@ -50,13 +49,7 @@
                     Alterar
                   </button>
                 </div>
-                <input 
-                  ref="fileInput"
-                  type="file" 
-                  accept="image/*" 
-                  @change="handleCoverUpload"
-                  style="display: none;"
-                />
+                <input ref="fileInput" type="file" accept="image/*" @change="handleCoverUpload" style="display: none;" />
               </div>
             </div>
 
@@ -64,37 +57,21 @@
             <div class="form-section">
               <ion-item class="form-item" fill="outline">
                 <ion-label position="floating">Título do Mangá *</ion-label>
-                <ion-input 
-                  v-model="mangaData.title"
-                  type="text" 
-                  required
-                  placeholder="Ex: Aventuras no Mundo dos Sonhos"
-                ></ion-input>
+                <ion-input v-model="mangaData.title" type="text" required placeholder="Ex: Aventuras no Mundo dos Sonhos"></ion-input>
               </ion-item>
             </div>
 
             <div class="form-section">
               <ion-item class="form-item" fill="outline">
                 <ion-label position="floating">Nome do Autor *</ion-label>
-                <ion-input 
-                  v-model="mangaData.author"
-                  type="text" 
-                  required
-                  placeholder="Seu nome ou pseudônimo"
-                ></ion-input>
+                <ion-input v-model="mangaData.author" type="text" required placeholder="Seu nome ou pseudônimo"></ion-input>
               </ion-item>
             </div>
 
             <!-- Sinopse -->
             <div class="form-section">
               <label class="section-label">Sinopse *</label>
-              <textarea 
-                v-model="mangaData.synopsis"
-                class="synopsis-input"
-                rows="6"
-                placeholder="Descreva a história do seu mangá... (mínimo 100 caracteres)"
-                required
-              ></textarea>
+              <textarea v-model="mangaData.synopsis" class="synopsis-input" rows="6" placeholder="Descreva a história do seu mangá... (mínimo 100 caracteres)" required></textarea>
               <div class="char-count">{{ mangaData.synopsis.length }}/2000</div>
             </div>
 
@@ -102,13 +79,7 @@
             <div class="form-section">
               <label class="section-label">Gêneros * (Máx. 5)</label>
               <div class="genres-container">
-                <div 
-                  v-for="genre in availableGenres" 
-                  :key="genre"
-                  class="genre-option"
-                  :class="{ 'selected': mangaData.genres.includes(genre) }"
-                  @click="toggleGenre(genre)"
-                >
+                <div v-for="genre in availableGenres" :key="genre" class="genre-option" :class="{ 'selected': mangaData.genres.includes(genre) }" @click="toggleGenre(genre)">
                   {{ genre }}
                 </div>
               </div>
@@ -125,25 +96,16 @@
             <div class="form-row">
               <div class="form-section half">
                 <label class="section-label">Status *</label>
-                <ion-select 
-                  v-model="mangaData.status"
-                  placeholder="Selecione"
-                  class="form-select"
-                >
+                <ion-select v-model="mangaData.status" placeholder="Selecione" class="form-select">
                   <ion-select-option value="em-andamento">Em andamento</ion-select-option>
                   <ion-select-option value="completo">Completo</ion-select-option>
                   <ion-select-option value="hiato">Hiato</ion-select-option>
                   <ion-select-option value="cancelado">Cancelado</ion-select-option>
                 </ion-select>
               </div>
-
               <div class="form-section half">
                 <label class="section-label">Tipo *</label>
-                <ion-select 
-                  v-model="mangaData.type"
-                  placeholder="Selecione"
-                  class="form-select"
-                >
+                <ion-select v-model="mangaData.type" placeholder="Selecione" class="form-select">
                   <ion-select-option value="mangá">Mangá</ion-select-option>
                   <ion-select-option value="manhwa">Manhwa</ion-select-option>
                   <ion-select-option value="manhua">Manhua</ion-select-option>
@@ -156,13 +118,7 @@
             <div class="form-section">
               <label class="section-label">Tags (opcional)</label>
               <div class="tags-input">
-                <input 
-                  v-model="newTag"
-                  type="text" 
-                  placeholder="Adicione uma tag e pressione Enter"
-                  @keydown.enter="addTag"
-                  class="tag-input"
-                />
+                <input v-model="newTag" type="text" placeholder="Adicione uma tag e pressione Enter" @keydown.enter="addTag" class="tag-input" />
                 <button type="button" @click="addTag" class="add-tag-btn">
                   <ion-icon :icon="add"></ion-icon>
                 </button>
@@ -179,13 +135,7 @@
             <div class="form-section">
               <label class="section-label">Classificação Etária</label>
               <div class="age-rating">
-                <div 
-                  v-for="rating in ageRatings" 
-                  :key="rating.value"
-                  class="rating-option"
-                  :class="{ 'selected': mangaData.ageRating === rating.value }"
-                  @click="mangaData.ageRating = rating.value"
-                >
+                <div v-for="rating in ageRatings" :key="rating.value" class="rating-option" :class="{ 'selected': mangaData.ageRating === rating.value }" @click="mangaData.ageRating = rating.value">
                   <span class="rating-label">{{ rating.label }}</span>
                   <span class="rating-age">{{ rating.age }}+</span>
                 </div>
@@ -201,14 +151,14 @@
           </div>
         </div>
 
-        <!-- Step 2: Capítulos -->
+        <!-- Step 2: Configuração de Capítulos -->
         <div v-if="currentStep === 2" class="step-content">
-          <h2 class="step-title">Capítulos</h2>
-          <p class="step-subtitle">Adicione os capítulos do seu mangá</p>
-
+          <h2 class="step-title">Configurar Capítulos</h2>
+          <p class="step-subtitle">Adicione e configure os capítulos do seu mangá</p>
+          
           <div class="chapters-section">
             <div class="chapters-header">
-              <h3>Capítulos Publicados</h3>
+              <h3>Capítulos</h3>
               <ion-button @click="addChapter" size="small" class="add-chapter-btn">
                 <ion-icon :icon="add" slot="start"></ion-icon>
                 Novo Capítulo
@@ -217,12 +167,7 @@
 
             <!-- Lista de Capítulos -->
             <div v-if="mangaData.chapters.length > 0" class="chapters-list">
-              <div 
-                v-for="(chapter, index) in mangaData.chapters" 
-                :key="index"
-                class="chapter-item"
-                :class="{ 'editing': editingChapterIndex === index }"
-              >
+              <div v-for="(chapter, index) in mangaData.chapters" :key="index" class="chapter-item" :class="{ 'editing': editingChapterIndex === index }">
                 <div v-if="editingChapterIndex !== index" class="chapter-info">
                   <div class="chapter-main">
                     <span class="chapter-number">Capítulo {{ chapter.number }}</span>
@@ -244,38 +189,11 @@
                   <div class="edit-form">
                     <div class="form-group">
                       <label>Número do Capítulo</label>
-                      <input 
-                        v-model="chapter.number"
-                        type="number" 
-                        min="1"
-                        class="form-control"
-                      />
+                      <input v-model="chapter.number" type="number" min="1" class="form-control" />
                     </div>
                     <div class="form-group">
                       <label>Título do Capítulo</label>
-                      <input 
-                        v-model="chapter.title"
-                        type="text" 
-                        class="form-control"
-                        placeholder="Ex: O início da jornada"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>Conteúdo (URLs das páginas)</label>
-                      <div class="pages-input">
-                        <div v-for="(page, pageIndex) in chapter.pages" :key="pageIndex" class="page-item">
-                          <input 
-                            v-model="chapter.pages[pageIndex]"
-                            type="text" 
-                            placeholder="URL da página"
-                            class="page-url"
-                          />
-                          <button @click="removePage(chapter, pageIndex)" class="remove-page">×</button>
-                        </div>
-                        <button @click="addPage(chapter)" class="add-page-btn">
-                          <ion-icon :icon="add"></ion-icon> Adicionar Página
-                        </button>
-                      </div>
+                      <input v-model="chapter.title" type="text" class="form-control" placeholder="Ex: O início da jornada" />
                     </div>
                     <div class="edit-actions">
                       <button @click="saveChapterEdit(index)" class="save-btn">Salvar</button>
@@ -291,55 +209,6 @@
               <ion-icon :icon="documentText" class="no-chapters-icon"></ion-icon>
               <p>Nenhum capítulo adicionado ainda</p>
               <p class="no-chapters-hint">Clique em "Novo Capítulo" para começar</p>
-            </div>
-          </div>
-
-          <!-- Adicionar Novo Capítulo -->
-          <div v-if="addingNewChapter" class="add-chapter-form">
-            <h3>Novo Capítulo</h3>
-            <div class="new-chapter-form">
-              <div class="form-group">
-                <label>Número do Capítulo *</label>
-                <input 
-                  v-model="newChapter.number"
-                  type="number" 
-                  min="1"
-                  class="form-control"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label>Título do Capítulo *</label>
-                <input 
-                  v-model="newChapter.title"
-                  type="text" 
-                  class="form-control"
-                  placeholder="Ex: O início da jornada"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label>Conteúdo (URLs das páginas) *</label>
-                <div class="pages-input">
-                  <div v-for="(page, index) in newChapter.pages" :key="index" class="page-item">
-                    <input 
-                      v-model="newChapter.pages[index]"
-                      type="text" 
-                      placeholder="URL da página"
-                      class="page-url"
-                      required
-                    />
-                    <button @click="removeNewPage(index)" class="remove-page">×</button>
-                  </div>
-                  <button @click="addNewPage" class="add-page-btn">
-                    <ion-icon :icon="add"></ion-icon> Adicionar Página
-                  </button>
-                </div>
-              </div>
-              <div class="new-chapter-actions">
-                <button @click="saveNewChapter" class="save-btn">Salvar Capítulo</button>
-                <button @click="cancelNewChapter" class="cancel-btn">Cancelar</button>
-              </div>
             </div>
           </div>
 
@@ -361,7 +230,7 @@
         <div v-if="currentStep === 3" class="step-content">
           <h2 class="step-title">Revisão Final</h2>
           <p class="step-subtitle">Confira todas as informações antes de publicar</p>
-
+          
           <div class="review-container">
             <!-- Resumo do Mangá -->
             <div class="review-section">
@@ -399,7 +268,6 @@
                     <span class="review-chapter-title">{{ chapter.title }}</span>
                   </div>
                   <div class="review-chapter-details">
-                    <span>{{ chapter.pages.length }} páginas</span>
                     <span class="review-chapter-date">{{ formatDate(chapter.createdAt) }}</span>
                   </div>
                 </div>
@@ -412,24 +280,15 @@
               <div class="publication-settings">
                 <ion-item class="setting-item">
                   <ion-label>Publicar como rascunho</ion-label>
-                  <ion-toggle 
-                    v-model="publishAsDraft"
-                    :checked="publishAsDraft"
-                  ></ion-toggle>
+                  <ion-toggle v-model="publishAsDraft" :checked="publishAsDraft"></ion-toggle>
                 </ion-item>
                 <ion-item class="setting-item">
                   <ion-label>Permitir comentários</ion-label>
-                  <ion-toggle 
-                    v-model="allowComments"
-                    :checked="allowComments"
-                  ></ion-toggle>
+                  <ion-toggle v-model="allowComments" :checked="allowComments"></ion-toggle>
                 </ion-item>
                 <ion-item class="setting-item">
                   <ion-label>Notificar seguidores</ion-label>
-                  <ion-toggle 
-                    v-model="notifyFollowers"
-                    :checked="notifyFollowers"
-                  ></ion-toggle>
+                  <ion-toggle v-model="notifyFollowers" :checked="notifyFollowers"></ion-toggle>
                 </ion-item>
               </div>
             </div>
@@ -454,46 +313,19 @@
 </template>
 
 <script setup lang="ts">
-import { 
-  IonPage, 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonButton,
-  IonBackButton,
-  IonButtons,
-  IonItem,
-  IonInput,
-  IonLabel,
-  IonIcon,
-  IonSelect,
-  IonSelectOption,
-  IonToggle,
-  IonSpinner,
-  toastController
-} from '@ionic/vue';
-import { 
-  arrowBack, 
-  arrowForward, 
-  add, 
-  image,
-  create,
-  trash,
-  documentText,
-  cloudUpload
-} from 'ionicons/icons';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonBackButton, IonButtons, IonItem, IonInput, IonLabel, IonIcon, IonSelect, IonSelectOption, IonToggle, IonSpinner, toastController } from '@ionic/vue';
+import { arrowBack, arrowForward, add, image, create, trash, documentText, cloudUpload } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router'; // Importar useRoute
+import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
-import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
+import { useMangaData } from '@/composables/useMangaData';
+import { MangaData } from '@/types/manga';
 import { createMangaFile } from '@/utils/mangaFileGenerator';
 
 const router = useRouter();
-const route = useRoute(); // Usar useRoute para acessar query params
+const route = useRoute();
 const { isAuthenticated, user } = useAuth();
-const { allStoredMangas, updateManga, getMangaById, loadAllMangasFromLocalStorage } = useMangaData(); // Usar o composable
+const { allStoredMangas, updateManga, getMangaById, loadAllMangasFromLocalStorage } = useMangaData();
 
 // Verificar autenticação
 onMounted(() => {
@@ -505,7 +337,7 @@ onMounted(() => {
     // Carregar mangá para edição ou rascunho
     const editMangaId = route.query.edit ? parseInt(route.query.edit as string) : null;
     const draftMangaId = route.query.draft ? parseInt(route.query.draft as string) : null;
-
+    
     if (editMangaId) {
       const mangaToEdit = getMangaById(editMangaId);
       if (mangaToEdit) {
@@ -533,12 +365,7 @@ onMounted(() => {
 const currentStep = ref(1);
 const fileInput = ref<HTMLInputElement | null>(null);
 const newTag = ref('');
-const newChapter = ref({
-  number: 1,
-  title: '',
-  pages: [''],
-  createdAt: new Date().toISOString()
-});
+const newChapter = ref({ number: 1, title: '', pages: [''], createdAt: new Date().toISOString() });
 const addingNewChapter = ref(false);
 const editingChapterIndex = ref<number | null>(null);
 const isPublishing = ref(false);
@@ -558,7 +385,7 @@ const mangaData = ref<MangaData>({
   status: 'em-andamento',
   ageRating: 'L',
   chapters: [],
-  userId: user.value?.id, // Garante que o userId seja definido
+  userId: user.value?.id,
   publishedAt: undefined,
   isDraft: false,
   views: 0,
@@ -567,9 +394,8 @@ const mangaData = ref<MangaData>({
 
 // Gêneros disponíveis
 const availableGenres = ref([
-  'Ação', 'Aventura', 'Comédia', 'Drama', 'Fantasia', 'Horror',
-  'Mistério', 'Romance', 'Sci-Fi', 'Slice of Life', 'Esportes',
-  'Sobrenatural', 'Mecha', 'Histórico', 'Psicológico', 'Thriller'
+  'Ação', 'Aventura', 'Comédia', 'Drama', 'Fantasia', 'Horror', 'Mistério', 'Romance', 
+  'Sci-Fi', 'Slice of Life', 'Esportes', 'Sobrenatural', 'Mecha', 'Histórico', 'Psicológico', 'Thriller'
 ]);
 
 // Classificações etárias
@@ -605,11 +431,9 @@ const handleCoverUpload = (event: Event) => {
   if (input.files && input.files[0]) {
     const file = input.files[0];
     const reader = new FileReader();
-
     reader.onload = (e) => {
       mangaData.value.cover = e.target?.result as string;
     };
-
     reader.readAsDataURL(file);
   }
 };
@@ -654,61 +478,15 @@ const removeTag = (tag: string) => {
 
 // Funções do Step 2
 const addChapter = () => {
-  addingNewChapter.value = true;
-  newChapter.value = {
-    number: mangaData.value.chapters.length + 1,
-    title: '',
-    pages: [''],
-    createdAt: new Date().toISOString()
-  };
-};
-
-const addPage = (chapter: any) => {
-  chapter.pages.push('');
-};
-
-const removePage = (chapter: any, index: number) => {
-  if (chapter.pages.length > 1) {
-    chapter.pages.splice(index, 1);
-  }
-};
-
-const addNewPage = () => {
-  newChapter.value.pages.push('');
-};
-
-const removeNewPage = (index: number) => {
-  if (newChapter.value.pages.length > 1) {
-    newChapter.value.pages.splice(index, 1);
-  }
-};
-
-const saveNewChapter = () => {
-  if (!newChapter.value.number || !newChapter.value.title || newChapter.value.pages.some(page => !page.trim())) {
-    showToast('Preencha todos os campos do capítulo', 'warning');
-    return;
-  }
-
+  const newChapterNumber = mangaData.value.chapters.length + 1;
   mangaData.value.chapters.push({
-    ...newChapter.value,
-    pages: newChapter.value.pages.filter(page => page.trim() !== '')
-  });
-
-  // Ordenar capítulos por número
-  mangaData.value.chapters.sort((a, b) => a.number - b.number);
-
-  addingNewChapter.value = false;
-  showToast('Capítulo adicionado com sucesso!', 'success');
-};
-
-const cancelNewChapter = () => {
-  addingNewChapter.value = false;
-  newChapter.value = {
-    number: 1,
-    title: '',
-    pages: [''],
+    number: newChapterNumber,
+    title: `Capítulo ${newChapterNumber}`,
+    pages: [],
     createdAt: new Date().toISOString()
-  };
+  });
+  
+  editingChapterIndex.value = mangaData.value.chapters.length - 1;
 };
 
 const editChapter = (index: number) => {
@@ -720,7 +498,6 @@ const saveChapterEdit = (index: number) => {
     showToast('Preencha todos os campos do capítulo', 'warning');
     return;
   }
-
   editingChapterIndex.value = null;
   showToast('Capítulo atualizado com sucesso!', 'success');
 };
@@ -733,16 +510,13 @@ const deleteChapter = async (index: number) => {
   const toast = await toastController.create({
     message: 'Tem certeza que deseja excluir este capítulo?',
     buttons: [
-      {
-        text: 'Cancelar',
-        role: 'cancel'
-      },
-      {
-        text: 'Excluir',
+      { text: 'Cancelar', role: 'cancel' },
+      { 
+        text: 'Excluir', 
         handler: () => {
           mangaData.value.chapters.splice(index, 1);
           showToast('Capítulo excluído', 'success');
-        }
+        } 
       }
     ]
   });
@@ -772,11 +546,10 @@ const getStatusLabel = (status: string) => {
 
 const publishManga = async () => {
   isPublishing.value = true;
-
   try {
     // Simular publicação
     await new Promise(resolve => setTimeout(resolve, 2000));
-
+    
     // Preparar dados do mangá
     const finalMangaData: MangaData = {
       ...mangaData.value,
@@ -786,7 +559,7 @@ const publishManga = async () => {
       views: mangaData.value.views || 0,
       likes: mangaData.value.likes || 0
     };
-
+    
     // Se for uma edição, atualiza o mangá existente
     if (mangaData.value.id) {
       updateManga(finalMangaData);
@@ -797,7 +570,7 @@ const publishManga = async () => {
       currentMangas.push(finalMangaData);
       localStorage.setItem('publishedMangas', JSON.stringify(currentMangas));
     }
-
+    
     // Criar arquivo Vue para o mangá (somente se não for rascunho)
     if (!publishAsDraft.value) {
       const fileCreated = await createMangaFile(finalMangaData);
@@ -805,14 +578,14 @@ const publishManga = async () => {
         console.log('Manga file created successfully');
       }
     }
-
+    
     loadAllMangasFromLocalStorage(); // Recarrega os dados no composable
-
+    
     await showToast(
       publishAsDraft.value ? 'Rascunho salvo com sucesso!' : 'Mangá publicado com sucesso!',
       'success'
     );
-
+    
     // Redirecionar para a página do mangá ou dashboard
     router.push('/dashboard'); // Redireciona para o dashboard após publicar/salvar
   } catch (error) {
@@ -1402,78 +1175,14 @@ const showToast = async (message: string, color: string = 'primary') => {
   box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
 }
 
-.pages-input {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.page-item {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.page-url {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: white;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-}
-
-.page-url:focus {
-  outline: none;
-  border-color: #ff0000;
-}
-
-.remove-page {
-  background: rgba(255, 0, 0, 0.2);
-  color: white;
-  border: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-
-.remove-page:hover {
-  background: rgba(255, 0, 0, 0.4);
-}
-
-.add-page-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-}
-
-.add-page-btn:hover {
-  background: rgba(255, 0, 0, 0.1);
-  border-color: #ff0000;
-}
-
 .edit-actions {
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
 }
 
-.save-btn, .cancel-btn {
+.save-btn,
+.cancel-btn {
   padding: 8px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -1519,32 +1228,6 @@ const showToast = async (message: string, color: string = 'primary') => {
 .no-chapters-hint {
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.4);
-}
-
-/* Novo Capítulo */
-.add-chapter-form {
-  background: rgba(255, 0, 0, 0.05);
-  border: 1px solid rgba(255, 0, 0, 0.2);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.add-chapter-form h3 {
-  color: white;
-  margin-bottom: 1rem;
-}
-
-.new-chapter-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.new-chapter-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
 }
 
 /* Step 3: Revisão */
@@ -1691,33 +1374,33 @@ ion-button {
   .publish-container {
     padding: 0.5rem;
   }
-
+  
   .step-content {
     padding: 1.5rem;
   }
-
+  
   .form-row {
     flex-direction: column;
     gap: 1rem;
   }
-
+  
   .review-card {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
-
+  
   .chapter-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-
+  
   .chapter-actions {
     width: 100%;
     justify-content: space-between;
   }
-
+  
   .action-buttons {
     flex-direction: column;
   }
@@ -1727,21 +1410,21 @@ ion-button {
   .progress-steps {
     padding: 0;
   }
-
+  
   .step-label {
     font-size: 0.75rem;
   }
-
+  
   .step-number {
     width: 32px;
     height: 32px;
     font-size: 1rem;
   }
-
+  
   .step-content {
     padding: 1rem;
   }
-
+  
   .step-title {
     font-size: 1.5rem;
   }
