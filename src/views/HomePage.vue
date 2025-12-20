@@ -63,16 +63,14 @@
             <ion-icon :icon="image" slot="start" class="menu-icon"></ion-icon>
             <ion-label>Alterar Fundo</ion-label>
           </ion-item>
-          <!-- No menu lateral, dentro do <ion-list> -->
-<ion-item v-if="isAuthenticated" @click="goToDashboard" class="menu-item">
-  <ion-icon :icon="analytics" slot="start" class="menu-icon"></ion-icon>
-  <ion-label>Meu Painel</ion-label>
-</ion-item>
-          <!-- No menu lateral, dentro do <ion-list> -->
-<ion-item v-if="isAuthenticated" @click="goToPublish" class="menu-item"> <!-- Adicionado v-if="isAuthenticated" -->
-  <ion-icon :icon="cloudUpload" slot="start" class="menu-icon"></ion-icon>
-  <ion-label>Publicar Mangá</ion-label>
-</ion-item>
+          <ion-item v-if="isAuthenticated" @click="goToDashboard" class="menu-item">
+            <ion-icon :icon="analytics" slot="start" class="menu-icon"></ion-icon>
+            <ion-label>Meu Painel</ion-label>
+          </ion-item>
+          <ion-item v-if="isAuthenticated" @click="goToPublish" class="menu-item">
+            <ion-icon :icon="cloudUpload" slot="start" class="menu-icon"></ion-icon>
+            <ion-label>Publicar Mangá</ion-label>
+          </ion-item>
           <ion-item @click="goToSettings" class="menu-item">
             <ion-icon :icon="settings" slot="start" class="menu-icon"></ion-icon>
             <ion-label>Configurações</ion-label>
@@ -97,7 +95,7 @@
         <div class="hero-section">
           <h1 class="hero-title">Descubra o Mundo dos <span class="highlight">Mangás</span></h1>
           <p class="hero-subtitle">Milhares de histórias esperando por você</p>
-          
+
           <div class="search-container">
             <ion-searchbar 
               placeholder="Buscar mangás, manhwas, autores..." 
@@ -105,7 +103,6 @@
               class="custom-searchbar"
               @ionInput="filterMangas"
             >
-              <!-- Ícone de pesquisa embutido no ion-searchbar, removido o duplicado -->
             </ion-searchbar>
           </div>
 
@@ -148,7 +145,7 @@
                 </div>
                 <div class="manga-rating">
                   <ion-icon :icon="star" class="rating-icon"></ion-icon>
-                  <span>{{ manga.likes || 0 }}</span> <!-- Usando likes como rating temporariamente -->
+                  <span>{{ manga.likes || 0 }}</span>
                 </div>
                 <ion-button 
                   @click.stop="toggleFavorite(manga)"
@@ -162,12 +159,12 @@
                   ></ion-icon>
                 </ion-button>
               </div>
-              
+
               <ion-card-header>
                 <ion-card-title class="manga-title">{{ manga.title }}</ion-card-title>
                 <ion-card-subtitle class="manga-author">{{ manga.author }}</ion-card-subtitle>
               </ion-card-header>
-              
+
               <ion-card-content>
                 <div class="manga-info">
                   <div class="info-item">
@@ -266,14 +263,14 @@ import {
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
+import { useMangaData } from '@/composables/useMangaData';
 import GenreSelectModal from '@/components/GenreSelectModal.vue';
-import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
+import { MangaData } from '@/types/manga';
 
 const router = useRouter();
 const { 
   isAuthenticated, 
-  user, // Adicionado user para o avatar
+  user, 
   userName, 
   userFavorites,
   logout: authLogout, 
@@ -281,9 +278,8 @@ const {
   isFavorite
 } = useAuth();
 
-const { publishedMangas: allPublishedMangas, loadAllMangasFromLocalStorage } = useMangaData(); // Usar o composable
+const { publishedMangas: allPublishedMangas, loadAllMangasFromLocalStorage } = useMangaData();
 
-// Array de backgrounds CSS
 const backgroundStyles = ref([
   'linear-gradient(135deg, #000000 0%, #1a0000 100%)',
   'linear-gradient(135deg, #0a0a0a 0%, #330000 100%)',
@@ -297,45 +293,39 @@ const searchQuery = ref('');
 const visibleCount = ref(8);
 const selectedGenres = ref<string[]>([]);
 
-// Gêneros disponíveis (copiado de PublishPage.vue para consistência)
 const availableGenres = ref([
   'Ação', 'Aventura', 'Comédia', 'Drama', 'Fantasia', 'Horror',
   'Mistério', 'Romance', 'Sci-Fi', 'Slice of Life', 'Esportes',
   'Sobrenatural', 'Mecha', 'Histórico', 'Psicológico', 'Thriller'
 ]);
 
-// Estilo atual do background
 const currentBackgroundStyle = computed(() => {
   return backgroundStyles.value[currentBackgroundIndex.value];
 });
 
-// Filtrar mangás
 const filteredMangas = computed(() => {
   let filtered: MangaData[] = allPublishedMangas.value;
 
-  // Filtrar por texto de pesquisa
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(manga => 
+    filtered = filtered.filter(manga =>
       manga.title.toLowerCase().includes(query) ||
       manga.author.toLowerCase().includes(query) ||
-      manga.genres.some(genre => 
+      manga.genres.some(genre =>
         genre.toLowerCase().includes(query)
       )
     );
   }
 
-  // Filtrar por gêneros selecionados
   if (selectedGenres.value.length > 0) {
-    filtered = filtered.filter(manga => 
+    filtered = filtered.filter(manga =>
       manga.genres.some(genre => selectedGenres.value.includes(genre))
     );
   }
-  
+
   return filtered.slice(0, visibleCount.value);
 });
 
-// Funções de navegação
 const goToHome = () => {
   router.push('/');
 };
@@ -362,7 +352,20 @@ const goToRecent = () => {
 };
 
 const goToSettings = () => {
-  router.push('/settings'); // Navega para a nova página de configurações
+  if (!isAuthenticated.value) {
+    showToast('Faça login para acessar as configurações!', 'warning');
+    goToLogin();
+  } else {
+    router.push('/settings');
+  }
+};
+
+const goToDashboard = () => {
+  router.push('/dashboard');
+};
+
+const goToPublish = () => {
+  router.push('/publish');
 };
 
 const seeAllPopular = () => {
@@ -391,8 +394,6 @@ const loadMore = () => {
 
 const openMangaDetails = (manga: MangaData) => {
   console.log('Abrindo detalhes do mangá:', manga.title);
-  // Implementar navegação para a página de detalhes do mangá
-  // router.push(`/manga/${manga.id}`);
 };
 
 const toggleFavorite = async (manga: MangaData) => {
@@ -424,7 +425,6 @@ const showToast = async (message: string, color: string = 'primary') => {
   await toast.present();
 };
 
-// Função para abrir o modal de seleção de gêneros
 const openGenreSelectModal = async () => {
   const modal = await modalController.create({
     component: GenreSelectModal,
@@ -441,7 +441,6 @@ const openGenreSelectModal = async () => {
   }
 };
 
-// Função para remover uma tag de gênero diretamente
 const removeGenreTag = (genreToRemove: string) => {
   selectedGenres.value = selectedGenres.value.filter(genre => genre !== genreToRemove);
 };
@@ -460,7 +459,7 @@ onMounted(() => {
   if (!localStorage.getItem('users')) {
     localStorage.setItem('users', JSON.stringify([]));
   }
-  loadAllMangasFromLocalStorage(); // Garante que os mangás são carregados ao montar a página
+  loadAllMangasFromLocalStorage();
 });
 </script>
 
@@ -503,7 +502,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   border: 2px solid #ff0000;
-  overflow: hidden; /* Garante que a imagem de avatar se ajuste */
+  overflow: hidden;
 }
 
 .avatar-icon {
@@ -631,7 +630,7 @@ onMounted(() => {
 /* Search bar */
 .search-container {
   max-width: 600px;
-  margin: 0 auto 1rem; /* Ajustado margin-bottom */
+  margin: 0 auto 1rem;
 }
 
 .custom-searchbar {
@@ -650,7 +649,7 @@ onMounted(() => {
   margin-left: 10px;
 }
 
-/* Gêneros Display Container (novo) */
+/* Gêneros Display Container */
 .genres-display-container {
   max-width: 600px;
   margin: 0 auto 2rem;
@@ -678,7 +677,7 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  max-width: 70%; /* Limita a largura para não quebrar o layout */
+  max-width: 70%;
   justify-content: flex-end;
 }
 
@@ -994,16 +993,16 @@ ion-card-content {
   .hero-title {
     font-size: 2rem;
   }
-  
+
   .manga-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
   }
-  
+
   .content-container {
     padding: 1rem;
   }
-  
+
   .section-title {
     font-size: 1.5rem;
   }
@@ -1013,28 +1012,28 @@ ion-card-content {
   .hero-title {
     font-size: 1.6rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1rem;
   }
-  
+
   .manga-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .card-image-container {
     height: 200px;
   }
-  
+
   .user-section {
     padding: 1.5rem 1rem;
   }
-  
+
   .user-avatar {
     width: 60px;
     height: 60px;
   }
-  
+
   .avatar-icon {
     font-size: 2rem;
   }

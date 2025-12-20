@@ -45,7 +45,7 @@
             <ion-icon :icon="add" slot="start"></ion-icon>
             Nova Obra
           </ion-button>
-          <ion-button @click="editProfile" fill="outline" class="edit-profile-btn">
+          <ion-button @click="goToSettings" fill="outline" class="edit-profile-btn">
             <ion-icon :icon="create" slot="start"></ion-icon>
             Editar Perfil
           </ion-button>
@@ -181,7 +181,7 @@
                   </ion-button>
                 </div>
               </div>
-              
+
               <div class="work-card-content" @click="viewManga(manga.id!)">
                 <div class="work-cover">
                   <img :src="manga.cover || 'https://via.placeholder.com/150x200'" :alt="manga.title" />
@@ -300,7 +300,7 @@
           </div>
 
           <div class="comments-list">
-            <div v-for="comment in filteredComments" :key="comment.id" 
+            <div v-for="comment in filteredComments" :key="comment.id"
                  class="comment-card" :class="{ 'unread': !comment.read }">
               <div class="comment-header">
                 <div class="comment-user">
@@ -315,7 +315,7 @@
                   <span class="comment-chapter">Cap. {{ comment.chapter }}</span>
                 </div>
               </div>
-              
+
               <div class="comment-content">
                 <p>{{ comment.content }}</p>
               </div>
@@ -572,15 +572,14 @@ import {
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
+import { useMangaData } from '@/composables/useMangaData';
 import Chart from 'chart.js/auto';
-import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
+import { MangaData } from '@/types/manga';
 
 const router = useRouter();
 const { user, isAuthenticated } = useAuth();
-const { allStoredMangas, loadAllMangasFromLocalStorage, updateManga } = useMangaData(); // Usar o composable
+const { allStoredMangas, loadAllMangasFromLocalStorage, updateManga } = useMangaData();
 
-// Computed properties para mangás do usuário
 const userPublishedMangas = computed(() => {
   return allStoredMangas.value.filter(m => m.userId === user.value?.id && !m.isDraft);
 });
@@ -589,19 +588,16 @@ const userDrafts = computed(() => {
   return allStoredMangas.value.filter(m => m.userId === user.value?.id && m.isDraft);
 });
 
-// Verificar autenticação
 onMounted(() => {
   if (!isAuthenticated.value) {
-    // Adiciona um pequeno atraso para permitir que as transições do Ionic sejam concluídas
     setTimeout(() => {
       router.push('/login');
-    }, 100); // 100ms de atraso
+    }, 100);
   } else {
     loadDashboardData();
   }
 });
 
-// Estados
 const activeTab = ref('works');
 const chartType = ref('views');
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
@@ -612,7 +608,6 @@ const analyticsPeriod = ref('7');
 const unreadComments = ref(3);
 const unreadNotifications = ref(5);
 
-// Estatísticas
 const stats = ref({
   totalWorks: 0,
   totalLikes: 0,
@@ -627,27 +622,21 @@ const stats = ref({
   earningChange: 25
 });
 
-// Dados
 const comments = ref<any[]>([]);
 const topWorks = ref<any[]>([]);
 const peakHours = ref<any[]>([]);
 const chapterEngagement = ref<any[]>([]);
 
-// Carregar dados do dashboard
 const loadDashboardData = async () => {
   try {
-    loadAllMangasFromLocalStorage(); // Recarrega os mangás do local storage
-    
-    // Calcular estatísticas
+    loadAllMangasFromLocalStorage();
+
     calculateStats();
-    
-    // Carregar comentários (simulação)
+
     loadComments();
-    
-    // Carregar análises
+
     loadAnalytics();
-    
-    // Inicializar gráfico
+
     nextTick(() => {
       if (chartCanvas.value) {
         initializeChart();
@@ -659,10 +648,9 @@ const loadDashboardData = async () => {
   }
 };
 
-// Calcular estatísticas
 const calculateStats = () => {
   const works = userPublishedMangas.value;
-  
+
   stats.value = {
     totalWorks: works.length,
     totalLikes: works.reduce((sum, m) => sum + (m.likes || 0), 0),
@@ -678,7 +666,6 @@ const calculateStats = () => {
   };
 };
 
-// Carregar comentários
 const loadComments = () => {
   comments.value = [
     {
@@ -716,7 +703,6 @@ const loadComments = () => {
   ];
 };
 
-// Filtrar comentários
 const filteredComments = computed(() => {
   if (commentFilter.value === 'unread') {
     return comments.value.filter(c => !c.read);
@@ -726,18 +712,15 @@ const filteredComments = computed(() => {
   return comments.value;
 });
 
-// Carregar análises
 const loadAnalytics = () => {
-  // Obras mais populares
   topWorks.value = [...userPublishedMangas.value]
     .sort((a, b) => (b.views || 0) - (a.views || 0))
     .slice(0, 5)
     .map((m, i) => ({
       ...m,
-      growth: [15, 8, -3, 20, 5][i] // Dados de exemplo
+      growth: [15, 8, -3, 20, 5][i]
     }));
 
-  // Horários de pico
   peakHours.value = [
     { time: '00h', percentage: 10 },
     { time: '04h', percentage: 5 },
@@ -748,7 +731,6 @@ const loadAnalytics = () => {
     { time: '24h', percentage: 15 }
   ];
 
-  // Engajamento por capítulo
   chapterEngagement.value = [
     { number: 1, title: 'O Início', views: 1000, likes: 150, comments: 25 },
     { number: 2, title: 'O Desafio', views: 850, likes: 120, comments: 18 },
@@ -757,14 +739,12 @@ const loadAnalytics = () => {
   ];
 };
 
-// Inicializar gráfico
 const initializeChart = () => {
   if (!chartCanvas.value) return;
 
   const ctx = chartCanvas.value.getContext('2d');
   if (!ctx) return;
 
-  // Destruir gráfico anterior
   if (chartInstance) {
     chartInstance.destroy();
   }
@@ -804,7 +784,6 @@ const initializeChart = () => {
   });
 };
 
-// Atualizar gráfico
 const updateChart = () => {
   if (chartInstance) {
     chartInstance.data = getChartData();
@@ -812,10 +791,9 @@ const updateChart = () => {
   }
 };
 
-// Dados do gráfico
 const getChartData = () => {
   const labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
-  
+
   const dataMap: Record<string, number[]> = {
     views: [500, 750, 600, 900, 1200, 1100, 1300],
     likes: [50, 75, 60, 90, 120, 110, 130],
@@ -825,7 +803,7 @@ const getChartData = () => {
   return {
     labels,
     datasets: [{
-      label: chartType.value === 'views' ? 'Visualizações' : 
+      label: chartType.value === 'views' ? 'Visualizações' :
              chartType.value === 'likes' ? 'Curtidas' : 'Comentários',
       data: dataMap[chartType.value] || dataMap.views,
       borderColor: '#ff0000',
@@ -836,9 +814,12 @@ const getChartData = () => {
   };
 };
 
-// Funções de navegação
 const goToPublish = () => {
   router.push('/publish');
+};
+
+const goToSettings = () => {
+  router.push('/settings');
 };
 
 const editProfile = async () => {
@@ -868,7 +849,6 @@ const editProfile = async () => {
       {
         text: 'Salvar',
         handler: async (data) => {
-          // Aqui você salvaria no backend
           showToast('Perfil atualizado com sucesso!', 'success');
         }
       }
@@ -887,7 +867,6 @@ const editManga = (id: number) => {
 
 const viewAnalytics = (id: number) => {
   activeTab.value = 'analytics';
-  // Aqui você poderia filtrar para mostrar apenas essa obra
 };
 
 const addChapter = (id: number) => {
@@ -901,7 +880,6 @@ const continueDraft = (id: number) => {
 const previewDraft = (id: number) => {
   const draft = userDrafts.value.find(d => d.id === id);
   if (draft) {
-    // Abrir preview
     showToast('Visualizando rascunho...', 'info');
   }
 };
@@ -920,7 +898,7 @@ const deleteDraft = async (id: number) => {
         handler: () => {
           const updatedMangas = allStoredMangas.value.filter(m => m.id !== id);
           localStorage.setItem('publishedMangas', JSON.stringify(updatedMangas));
-          loadAllMangasFromLocalStorage(); // Recarrega os dados após a exclusão
+          loadAllMangasFromLocalStorage();
           showToast('Rascunho excluído', 'success');
         }
       }
@@ -989,7 +967,6 @@ const deleteComment = async (commentId: number) => {
   await alert.present();
 };
 
-// Ações rápidas
 const importWork = async () => {
   const alert = await alertController.create({
     header: 'Importar Obra',
@@ -1011,7 +988,6 @@ const exportData = async () => {
       {
         text: 'Exportar',
         handler: () => {
-          // Simular exportação
           showToast('Dados exportados com sucesso!', 'success');
         }
       }
@@ -1032,7 +1008,6 @@ const viewNotifications = () => {
   showToast('Abrindo notificações...', 'info');
 };
 
-// Funções auxiliares
 const formatNumber = (num: number): string => {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M';
@@ -1069,19 +1044,18 @@ const getTypeLabel = (type: string): string => {
 };
 
 const openWorkMenu = (manga: MangaData) => {
-  // Implementar menu de contexto
   showToast(`Abrindo menu para ${manga.title}`, 'info');
 };
 
 const sortWorks = () => {
   switch (sortBy.value) {
     case 'newest':
-      userPublishedMangas.value.sort((a, b) => 
+      userPublishedMangas.value.sort((a, b) =>
         new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime()
       );
       break;
     case 'oldest':
-      userPublishedMangas.value.sort((a, b) => 
+      userPublishedMangas.value.sort((a, b) =>
         new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime()
       );
       break;
@@ -1100,7 +1074,6 @@ const refreshData = () => {
 };
 
 const loadTabContent = () => {
-  // Aqui você pode carregar dados específicos da tab
   if (activeTab.value === 'comments') {
     loadComments();
   } else if (activeTab.value === 'analytics') {
@@ -1994,54 +1967,54 @@ ion-segment {
   .author-banner {
     padding: 1rem;
   }
-  
+
   .author-info {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .author-stats {
     justify-content: center;
   }
-  
+
   .author-actions {
     flex-direction: column;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
     padding: 1rem;
   }
-  
+
   .works-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .work-card-content {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
-  
+
   .work-cover {
     width: 150px;
     height: 210px;
   }
-  
+
   .analytics-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .section-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
-  
+
   .chart-options {
     width: 100%;
   }
@@ -2051,22 +2024,22 @@ ion-segment {
   .actions-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .draft-card {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
-  
+
   .draft-actions {
     justify-content: center;
   }
-  
+
   .comment-header {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .comment-manga {
     text-align: left;
   }
