@@ -30,7 +30,11 @@
 
         <div class="user-section" v-else>
           <div class="user-avatar">
-            <ion-icon :icon="personCircle" class="avatar-icon logged"></ion-icon>
+            <img 
+              :src="user?.avatar || 'https://ionicframework.com/docs/img/demos/avatar.svg'" 
+              alt="Avatar do Usuário" 
+              class="avatar-image"
+            />
           </div>
           <p class="user-name">Olá, {{ userName }}!</p>
           <ion-button expand="block" fill="clear" @click="logout" class="logout-button">
@@ -269,6 +273,7 @@ import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
 const router = useRouter();
 const { 
   isAuthenticated, 
+  user, // Adicionado user para o avatar
   userName, 
   userFavorites,
   logout: authLogout, 
@@ -357,7 +362,7 @@ const goToRecent = () => {
 };
 
 const goToSettings = () => {
-  showToast('Configurações em desenvolvimento', 'info');
+  router.push('/settings'); // Navega para a nova página de configurações
 };
 
 const seeAllPopular = () => {
@@ -498,6 +503,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   border: 2px solid #ff0000;
+  overflow: hidden; /* Garante que a imagem de avatar se ajuste */
 }
 
 .avatar-icon {
@@ -505,8 +511,10 @@ onMounted(() => {
   color: rgba(255, 255, 255, 0.8);
 }
 
-.avatar-icon.logged {
-  color: #ff0000;
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-greeting,

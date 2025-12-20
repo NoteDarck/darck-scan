@@ -8,6 +8,7 @@ import RegisterPage from '@/views/RegisterPage.vue'
 import FavoritesPage from '@/views/FavoritesPage.vue'
 import PublishPage from '@/views/PublishPage.vue'
 import DashboardPage from '@/views/DashboardPage.vue'
+import SettingsPage from '@/views/SettingsPage.vue' // Importar SettingsPage
 
 const routes: RouteRecordRaw[] = [
   {
@@ -40,6 +41,12 @@ const routes: RouteRecordRaw[] = [
     path: '/dashboard',
     name: 'Dashboard',
     component: DashboardPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings', // Nova rota
+    name: 'Settings',
+    component: SettingsPage,
     meta: { requiresAuth: true }
   }
 ]

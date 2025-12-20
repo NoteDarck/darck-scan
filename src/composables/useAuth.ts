@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   createdAt: string;
+  avatar?: string; // Adicionado campo avatar
 }
 
 interface AuthResponse {
@@ -110,7 +111,8 @@ export const useAuth = () => {
           name: firebaseUser.displayName || 'Usuário Google',
           email: firebaseUser.email,
           password: 'GOOGLE_AUTH_PASSWORD', // Senha placeholder para compatibilidade local
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          avatar: firebaseUser.photoURL || undefined // Salva a foto do Google
         };
         localUsers.push(foundUser);
         localStorage.setItem('users', JSON.stringify(localUsers));
@@ -121,7 +123,8 @@ export const useAuth = () => {
         id: foundUser.id,
         name: foundUser.name,
         email: foundUser.email,
-        createdAt: foundUser.createdAt
+        createdAt: foundUser.createdAt,
+        avatar: foundUser.avatar
       };
       localStorage.setItem('user', JSON.stringify(user.value));
 
@@ -173,12 +176,13 @@ export const useAuth = () => {
       }
       
       // Criar novo usuário
-      const newUser = {
+      const newUser: User = {
         id: Date.now(),
         name,
         email,
         password, // Em produção, usar hash!
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        avatar: undefined // Avatar padrão
       };
       
       // Adicionar à lista de usuários
@@ -230,6 +234,47 @@ export const useAuth = () => {
     }
   };
 
+  // Atualizar perfil do usuário
+  const updateUserProfile = async (newName: string, newAvatar?: string): Promise<AuthResponse> => {
+    if (!user.value) {
+      return { success: false, message: 'Nenhum usuário logado.' };
+    }
+
+    try {
+      // Simular delay de rede
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const updatedUser: User = {
+        ...user.value,
+        name: newName,
+        avatar: newAvatar || user.value.avatar // Atualiza avatar se fornecido
+      };
+
+      // Atualizar no localStorage de usuários
+      let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = localUsers.findIndex((u: any) => u.id === updatedUser.id);
+      if (userIndex !== -1) {
+        localUsers[userIndex] = { ...localUsers[userIndex], name: newName, avatar: newAvatar };
+        localStorage.setItem('users', JSON.stringify(localUsers));
+      }
+
+      // Atualizar o usuário logado no ref e localStorage
+      user.value = updatedUser;
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      return {
+        success: true,
+        message: 'Perfil atualizado com sucesso!',
+        user: updatedUser
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro ao atualizar perfil'
+      };
+    }
+  };
+
   // Adicionar/remover favoritos
   const toggleFavorite = (mangaId: number): boolean => {
     if (!isAuthenticated.value) return false;
@@ -270,6 +315,7 @@ export const useAuth = () => {
     loginWithGoogle, // Exportar nova função
     register,
     logout,
+    updateUserProfile, // Exportar nova função
     toggleFavorite,
     isFavorite,
     initializeAuth // Manter para compatibilidade, mas a chamada inicial é global
