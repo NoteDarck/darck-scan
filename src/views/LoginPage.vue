@@ -72,6 +72,22 @@
               <span v-else>Entrar</span>
             </ion-button>
 
+            <div class="divider">
+              <span class="divider-text">OU</span>
+            </div>
+
+            <ion-button 
+              expand="block" 
+              fill="outline"
+              class="google-button"
+              @click="handleGoogleLogin"
+              :disabled="isLoading"
+            >
+              <ion-icon :icon="logoGoogle" slot="start"></ion-icon>
+              <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+              <span v-else>Entrar com Google</span>
+            </ion-button>
+
             <div class="register-link">
               <p>Não tem uma conta?</p>
               <ion-button fill="clear" @click="goToRegister" class="register-link-button">
@@ -103,13 +119,13 @@ import {
   IonSpinner,
   toastController
 } from '@ionic/vue';
-import { personCircle, mail, lockClosed } from 'ionicons/icons';
+import { personCircle, mail, lockClosed, logoGoogle } from 'ionicons/icons'; // Importar logoGoogle
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
-const { login, isLoading } = useAuth();
+const { login, loginWithGoogle, isLoading } = useAuth(); // Adicionar loginWithGoogle
 
 const loginForm = ref({
   email: '',
@@ -144,6 +160,22 @@ const handleLogin = async () => {
     if (rememberMe.value) {
       localStorage.setItem('rememberMe', 'true');
     }
+    router.push('/');
+  }
+};
+
+const handleGoogleLogin = async () => {
+  const result = await loginWithGoogle();
+
+  const toast = await toastController.create({
+    message: result.message,
+    duration: 2000,
+    color: result.success ? 'success' : 'danger',
+    position: 'top'
+  });
+  await toast.present();
+
+  if (result.success) {
     router.push('/');
   }
 };
@@ -354,6 +386,52 @@ const goToRegister = () => {
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
   --box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+}
+
+/* Divider para o botão do Google */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 2rem 0;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.divider:not(:empty)::before {
+  margin-right: .5em;
+}
+
+.divider:not(:empty)::after {
+  margin-left: .5em;
+}
+
+.divider-text {
+  padding: 0 10px;
+  font-size: 0.9rem;
+}
+
+.google-button {
+  --background: rgba(255, 255, 255, 0.05);
+  --background-hover: rgba(255, 255, 255, 0.1);
+  --border-color: rgba(255, 255, 255, 0.2);
+  --color: white;
+  --border-radius: 12px;
+  height: 56px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.google-button ion-icon {
+  font-size: 1.4rem;
+  margin-right: 10px;
 }
 
 .register-link {

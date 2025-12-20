@@ -65,7 +65,7 @@
   <ion-label>Meu Painel</ion-label>
 </ion-item>
           <!-- No menu lateral, dentro do <ion-list> -->
-<ion-item @click="goToPublish" class="menu-item">
+<ion-item v-if="isAuthenticated" @click="goToPublish" class="menu-item"> <!-- Adicionado v-if="isAuthenticated" -->
   <ion-icon :icon="cloudUpload" slot="start" class="menu-icon"></ion-icon>
   <ion-label>Publicar Mangá</ion-label>
 </ion-item>
@@ -231,7 +231,9 @@ import {
   heartOutline,
   flag,
   search,
-  arrowForward
+  arrowForward,
+  analytics,
+  cloudUpload
 } from 'ionicons/icons';
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';

@@ -1,5 +1,6 @@
 // src/composables/useAuth.ts
 import { ref, computed, onMounted } from 'vue';
+import { auth, GoogleAuthProvider, signInWithPopup } from '@/firebase/config'; // Importar auth e GoogleAuthProvider
 
 interface User {
   id: number;
@@ -14,28 +15,32 @@ interface AuthResponse {
   user?: User;
 }
 
+// Declarar variáveis reativas fora da função para que sejam singletons
+const user = ref<User | null>(null);
+const isLoading = ref(false);
+const userFavorites = ref<number[]>([]);
+
+// Função para inicializar o estado de autenticação do localStorage
+const initializeAuth = () => {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    user.value = JSON.parse(storedUser);
+  }
+  
+  // Carregar favoritos do usuário logado
+  if (user.value) {
+    const favoritesKey = `favorites_${user.value.id}`;
+    const storedFavorites = localStorage.getItem(favoritesKey);
+    userFavorites.value = storedFavorites ? JSON.parse(storedFavorites) : [];
+  } else {
+    userFavorites.value = [];
+  }
+};
+
+// Chamar initializeAuth uma vez quando o módulo é carregado
+initializeAuth();
+
 export const useAuth = () => {
-  const user = ref<User | null>(null);
-  const isLoading = ref(false);
-  const userFavorites = ref<number[]>([]);
-
-  // Inicializar com dados do localStorage
-  const initializeAuth = () => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      user.value = JSON.parse(storedUser);
-    }
-    
-    const storedFavorites = localStorage.getItem('favorites');
-    if (storedFavorites) {
-      userFavorites.value = JSON.parse(storedFavorites);
-    }
-  };
-
-  onMounted(() => {
-    initializeAuth();
-  });
-
   const isAuthenticated = computed(() => !!user.value);
   const userName = computed(() => user.value?.name || 'Usuário');
 
@@ -69,7 +74,7 @@ export const useAuth = () => {
       const favoritesKey = `favorites_${userWithoutPassword.id}`;
       const storedFavorites = localStorage.getItem(favoritesKey);
       userFavorites.value = storedFavorites ? JSON.parse(storedFavorites) : [];
-      localStorage.setItem('favorites', JSON.stringify(userFavorites.value));
+      localStorage.setItem('favorites', JSON.stringify(userFavorites.value)); // Atualiza o localStorage 'favorites' global
       
       return {
         success: true,
@@ -80,6 +85,66 @@ export const useAuth = () => {
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Erro ao fazer login'
+      };
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // Login com Google
+  const loginWithGoogle = async (): Promise<AuthResponse> => {
+    isLoading.value = true;
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+
+      // Simular criação de usuário local ou buscar existente
+      let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      let foundUser = localUsers.find((u: any) => u.email === firebaseUser.email);
+
+      if (!foundUser) {
+        // Se não existir localmente, cria um novo usuário simulado
+        foundUser = {
+          id: Date.now(),
+          name: firebaseUser.displayName || 'Usuário Google',
+          email: firebaseUser.email,
+          password: 'GOOGLE_AUTH_PASSWORD', // Senha placeholder para compatibilidade local
+          createdAt: new Date().toISOString()
+        };
+        localUsers.push(foundUser);
+        localStorage.setItem('users', JSON.stringify(localUsers));
+        localStorage.setItem(`favorites_${foundUser.id}`, JSON.stringify([])); // Inicializa favoritos
+      }
+
+      user.value = {
+        id: foundUser.id,
+        name: foundUser.name,
+        email: foundUser.email,
+        createdAt: foundUser.createdAt
+      };
+      localStorage.setItem('user', JSON.stringify(user.value));
+
+      const favoritesKey = `favorites_${user.value.id}`;
+      const storedFavorites = localStorage.getItem(favoritesKey);
+      userFavorites.value = storedFavorites ? JSON.parse(storedFavorites) : [];
+      localStorage.setItem('favorites', JSON.stringify(userFavorites.value));
+
+      return {
+        success: true,
+        message: 'Login com Google realizado com sucesso!',
+        user: user.value
+      };
+    } catch (error: any) {
+      let errorMessage = 'Erro ao fazer login com Google';
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Login com Google cancelado.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      return {
+        success: false,
+        message: errorMessage
       };
     } finally {
       isLoading.value = false;
@@ -202,10 +267,11 @@ export const useAuth = () => {
     userFavorites,
     isLoading,
     login,
+    loginWithGoogle, // Exportar nova função
     register,
     logout,
     toggleFavorite,
     isFavorite,
-    initializeAuth
+    initializeAuth // Manter para compatibilidade, mas a chamada inicial é global
   };
 };

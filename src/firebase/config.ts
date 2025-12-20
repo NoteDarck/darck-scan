@@ -8,7 +8,9 @@ import {
   onAuthStateChanged,
   User,
   updateProfile,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GoogleAuthProvider, // Adicionado
+  signInWithPopup // Adicionado
 } from 'firebase/auth';
 import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 
@@ -36,6 +38,8 @@ export {
   onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
+  GoogleAuthProvider, // Exportado
+  signInWithPopup, // Exportado
   collection,
   addDoc,
   getDocs,

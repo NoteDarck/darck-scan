@@ -96,6 +96,22 @@
               <span v-else>Criar Conta</span>
             </ion-button>
 
+            <div class="divider">
+              <span class="divider-text">OU</span>
+            </div>
+
+            <ion-button 
+              expand="block" 
+              fill="outline"
+              class="google-button"
+              @click="handleGoogleLogin"
+              :disabled="isLoading"
+            >
+              <ion-icon :icon="logoGoogle" slot="start"></ion-icon>
+              <ion-spinner v-if="isLoading" name="crescent"></ion-spinner>
+              <span v-else>Cadastrar com Google</span>
+            </ion-button>
+
             <div class="login-link">
               <p>Já tem uma conta?</p>
               <ion-button fill="clear" @click="goToLogin" class="login-link-button">
@@ -127,13 +143,13 @@ import {
   IonSpinner,
   toastController
 } from '@ionic/vue';
-import { personAdd, mail, lockClosed, person } from 'ionicons/icons';
+import { personAdd, mail, lockClosed, person, logoGoogle } from 'ionicons/icons'; // Importar logoGoogle
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 
 const router = useRouter();
-const { register, isLoading } = useAuth();
+const { register, loginWithGoogle, isLoading } = useAuth(); // Adicionar loginWithGoogle
 
 const registerForm = ref({
   name: '',
@@ -210,6 +226,22 @@ const handleRegister = async () => {
   }
 };
 
+const handleGoogleLogin = async () => {
+  const result = await loginWithGoogle();
+
+  const toast = await toastController.create({
+    message: result.message,
+    duration: 2000,
+    color: result.success ? 'success' : 'danger',
+    position: 'top'
+  });
+  await toast.present();
+
+  if (result.success) {
+    router.push('/');
+  }
+};
+
 const showTerms = async () => {
   const toast = await toastController.create({
     message: 'Termos de Serviço em desenvolvimento',
@@ -234,10 +266,6 @@ const goToLogin = () => {
   router.push('/login');
 };
 </script>
-
-<style scoped>
-/* ... CSS (igual ao anterior) ... */
-</style>
 
 <style scoped>
 .register-background {
@@ -422,6 +450,52 @@ const goToLogin = () => {
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
   --box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+}
+
+/* Divider para o botão do Google */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 2rem 0;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.divider:not(:empty)::before {
+  margin-right: .5em;
+}
+
+.divider:not(:empty)::after {
+  margin-left: .5em;
+}
+
+.divider-text {
+  padding: 0 10px;
+  font-size: 0.9rem;
+}
+
+.google-button {
+  --background: rgba(255, 255, 255, 0.05);
+  --background-hover: rgba(255, 255, 255, 0.1);
+  --border-color: rgba(255, 255, 255, 0.2);
+  --color: white;
+  --border-radius: 12px;
+  height: 56px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.google-button ion-icon {
+  font-size: 1.4rem;
+  margin-right: 10px;
 }
 
 .login-link {
