@@ -2,8 +2,13 @@
 import { MangaData } from '@/types/manga';
 
 export const generateMangaFileContent = (manga: MangaData): string => {
-  return `<!-- Auto-generated manga file for ${manga.title} -->
-<template>
+  const safeTitle = manga.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+
+  return `<template>
   <ion-page>
     <ion-header>
       <ion-toolbar class="dark-toolbar">
@@ -11,15 +16,20 @@ export const generateMangaFileContent = (manga: MangaData): string => {
           <ion-back-button default-href="/" text="Voltar" color="light"></ion-back-button>
         </ion-buttons>
         <ion-title>${manga.title}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button @click="toggleFavorite" fill="clear">
+            <ion-icon :icon="isFavorite ? heart : heartOutline" :color="isFavorite ? 'danger' : 'light'"></ion-icon>
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
     <ion-content class="manga-detail-content">
       <div class="manga-header">
         <div class="manga-cover-container">
-          <img :src="${manga.cover || 'https://via.placeholder.com/600x800'}" alt="${manga.title}" class="manga-cover" />
-          <div class="manga-badge" :class="${manga.type.toLowerCase()}">
-            {{ '${manga.type}' }}
+          <img src="${manga.cover || 'https://via.placeholder.com/600x800'}" alt="${manga.title}" class="manga-cover" />
+          <div class="manga-badge" :class="typeClass">
+            {{ typeLabel }}
           </div>
         </div>
 
@@ -30,27 +40,34 @@ export const generateMangaFileContent = (manga: MangaData): string => {
           <div class="manga-meta">
             <div class="meta-item">
               <ion-icon :icon="star" class="meta-icon"></ion-icon>
-              <span>${manga.likes || 0} Curtidas</span>
+              <span>{{ manga.likes || 0 }} Curtidas</span>
             </div>
             <div class="meta-item">
               <ion-icon :icon="eye" class="meta-icon"></ion-icon>
-              <span>${manga.views || 0} Visualizações</span>
+              <span>{{ manga.views || 0 }} Visualizações</span>
             </div>
             <div class="meta-item">
               <ion-icon :icon="book" class="meta-icon"></ion-icon>
-              <span>${manga.chapters?.length || 0} Capítulos</span>
+              <span>{{ manga.chapters?.length || 0 }} Capítulos</span>
             </div>
           </div>
 
-          <div class="manga-status" :class="${manga.status.toLowerCase().replace(' ', '-')}">
+          <div class="manga-status" :class="statusClass">
             <ion-icon :icon="flag" class="status-icon"></ion-icon>
-            <span>{{ getStatusLabel('${manga.status}') }}</span>
+            <span>{{ statusLabel }}</span>
           </div>
 
           <div class="manga-genres">
-            <span v-for="(genre, index) in ['${manga.genres.join("', '")}']" :key="index" class="genre-tag">
+            <span v-for="(genre, index) in genres" :key="index" class="genre-tag">
               {{ genre }}
             </span>
+          </div>
+
+          <div class="manga-actions">
+            <ion-button @click="startReading" class="read-btn">
+              <ion-icon :icon="book" slot="start"></ion-icon>
+              Começar a Ler
+            </ion-button>
           </div>
         </div>
       </div>
@@ -61,15 +78,16 @@ export const generateMangaFileContent = (manga: MangaData): string => {
       </div>
 
       <div class="manga-chapters">
-        <h2>Capítulos</h2>
+        <h2>Capítulos ({{ manga.chapters?.length || 0 }})</h2>
         <div class="chapters-list">
           <div v-for="chapter in chapters" :key="chapter.number" class="chapter-item">
             <div class="chapter-info">
               <span class="chapter-number">Capítulo {{ chapter.number }}</span>
               <span class="chapter-title">{{ chapter.title }}</span>
+              <span class="chapter-date">{{ formatDate(chapter.createdAt) }}</span>
             </div>
             <div class="chapter-actions">
-              <ion-button size="small" @click="readChapter(chapter)">
+              <ion-button size="small" @click="readChapter(chapter)" class="read-chapter-btn">
                 <ion-icon :icon="book" slot="start"></ion-icon>
                 Ler
               </ion-button>
@@ -94,45 +112,84 @@ import {
   IonIcon,
   toastController
 } from '@ionic/vue';
-import { star, eye, book, flag } from 'ionicons/icons';
-import { ref, onMounted } from 'vue';
+import { star, eye, book, flag, heart, heartOutline } from 'ionicons/icons';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import { useMangaData } from '@/composables/useMangaData';
 
 const router = useRouter();
 const { isAuthenticated, toggleFavorite, isFavorite } = useAuth();
-const { getMangaById, updateManga } = useMangaData();
 
-const mangaId = ${manga.id};
-const manga = ref<any>(null);
-const chapters = ref<any[]>([]);
+const manga = ref(${JSON.stringify(manga, null, 2)});
+const isFavoriteManga = ref(false);
 
-onMounted(() => {
-  loadMangaData();
+const typeClass = computed(() => manga.value.type.toLowerCase());
+const typeLabel = computed(() => {
+  const types = { 'mangá': 'Mangá', 'manhwa': 'Manhwa', 'manhua': 'Manhua', 'webtoon': 'Webtoon' };
+  return types[manga.value.type] || manga.value.type;
 });
 
-const loadMangaData = () => {
-  const storedManga = getMangaById(mangaId);
-  if (storedManga) {
-    manga.value = storedManga;
-    chapters.value = storedManga.chapters || [];
+const statusClass = computed(() => manga.value.status.toLowerCase().replace(' ', '-'));
+const statusLabel = computed(() => {
+  const statuses = {
+    'em-andamento': 'Em Andamento',
+    'completo': 'Completo',
+    'hiato': 'Hiato',
+    'cancelado': 'Cancelado'
+  };
+  return statuses[manga.value.status] || manga.value.status;
+});
+
+const genres = computed(() => manga.value.genres || []);
+const chapters = computed(() => manga.value.chapters || []);
+
+onMounted(() => {
+  if (manga.value.id) {
+    isFavoriteManga.value = isFavorite(manga.value.id);
+  }
+});
+
+const toggleFavoriteManga = () => {
+  if (!isAuthenticated.value) {
+    showToast('Faça login para favoritar mangás!', 'warning');
+    router.push('/login');
+    return;
+  }
+
+  if (!manga.value.id) {
+    showToast('ID do mangá não disponível', 'danger');
+    return;
+  }
+
+  const added = toggleFavorite(manga.value.id);
+  isFavoriteManga.value = added;
+  showToast(added ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!', 'success');
+};
+
+const startReading = () => {
+  if (chapters.value.length > 0) {
+    readChapter(chapters.value[0]);
+  } else {
+    showToast('Este mangá não possui capítulos ainda', 'warning');
   }
 };
 
 const readChapter = (chapter: any) => {
-  // Implement chapter reading logic
-  console.log('Reading chapter:', chapter.number);
+  showToast(\`Lendo capítulo \${chapter.number}: \${chapter.title}\`, 'info');
 };
 
-const getStatusLabel = (status: string): string => {
-  const statusMap: Record<string, string> = {
-    'em-andamento': 'Em Andamento',
-    'completo': 'Completo',
-    'hiato': 'Hiato',
-    'cancelado': 'Cancelado',
-  };
-  return statusMap[status] || status;
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('pt-BR');
+};
+
+const showToast = async (message: string, color: string = 'primary') => {
+  const toast = await toastController.create({
+    message,
+    duration: 2000,
+    color: color,
+    position: 'top'
+  });
+  await toast.present();
 };
 </script>
 
@@ -223,6 +280,7 @@ const getStatusLabel = (status: string): string => {
   justify-content: center;
   gap: 2rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .meta-item {
@@ -289,6 +347,19 @@ const getStatusLabel = (status: string): string => {
   border: 1px solid rgba(255, 0, 0, 0.2);
 }
 
+.manga-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.read-btn {
+  --background: #ff0000;
+  --background-hover: #b30000;
+  --color: white;
+  --border-radius: 12px;
+}
+
 .manga-synopsis {
   background: rgba(20, 20, 20, 0.8);
   border-radius: 16px;
@@ -343,6 +414,7 @@ const getStatusLabel = (status: string): string => {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
 }
 
 .chapter-number {
@@ -356,9 +428,24 @@ const getStatusLabel = (status: string): string => {
   font-size: 0.95rem;
 }
 
+.chapter-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
 .chapter-actions {
   display: flex;
   gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.read-chapter-btn {
+  --background: #ff0000;
+  --background-hover: #b30000;
+  --color: white;
+  --border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {
@@ -393,6 +480,16 @@ const getStatusLabel = (status: string): string => {
     padding: 4px 8px;
     font-size: 0.75rem;
   }
+
+  .chapter-item {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .chapter-actions {
+    margin-left: 0;
+  }
 }
 </style>
 `;
@@ -400,20 +497,16 @@ const getStatusLabel = (status: string): string => {
 
 export const createMangaFile = async (manga: MangaData): Promise<boolean> => {
   try {
-    // Generate file content
     const fileContent = generateMangaFileContent(manga);
-
-    // Create a safe filename from the manga title
+    
     const safeTitle = manga.title
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/[^a-z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
 
-    const fileName = `Manga${manga.id}_${safeTitle}.vue`;
+    const fileName = `${safeTitle}.vue`;
 
-    // For browser environment, we'll store this in localStorage
-    // In a real app, you might want to use a backend service
     const mangaFiles = JSON.parse(localStorage.getItem('mangaFiles') || '{}');
     mangaFiles[fileName] = fileContent;
     localStorage.setItem('mangaFiles', JSON.stringify(mangaFiles));
