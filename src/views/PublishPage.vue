@@ -427,9 +427,7 @@ const canProceedToStep2 = computed(() => {
     mangaData.value.author.trim() !== '' &&
     mangaData.value.synopsis.trim().length >= 100 &&
     mangaData.value.genres.length > 0 &&
-    mangaData.value.cover !== '' &&
-    mangaData.value.type !== '' &&
-    mangaData.value.status !== ''
+    mangaData.value.cover !== ''
   );
 });
 
