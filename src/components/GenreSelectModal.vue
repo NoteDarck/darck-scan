@@ -18,14 +18,22 @@
 
     <ion-content class="genre-modal-content">
       <ion-list :inset="true">
-        <ion-item v-for="genre in availableGenres" :key="genre" class="genre-item">
+        <ion-item 
+          v-for="genre in availableGenres" 
+          :key="genre" 
+          class="genre-item"
+          :class="{ 'selected': currentSelectedGenres.includes(genre) }"
+          @click="toggleGenre(genre)"
+          button
+        >
           <ion-label>{{ genre }}</ion-label>
-          <ion-checkbox 
+          <ion-icon 
+            v-if="currentSelectedGenres.includes(genre)" 
+            :icon="checkmarkCircle" 
             slot="end" 
-            :checked="currentSelectedGenres.includes(genre)"
-            @ionChange="toggleGenre(genre)"
-            class="custom-checkbox"
-          ></ion-checkbox>
+            color="primary"
+            class="selected-icon"
+          ></ion-icon>
         </ion-item>
       </ion-list>
     </ion-content>
@@ -45,10 +53,9 @@ import {
   IonList,
   IonItem,
   IonLabel,
-  IonCheckbox,
   modalController,
 } from '@ionic/vue';
-import { close, checkmark } from 'ionicons/icons';
+import { close, checkmark, checkmarkCircle } from 'ionicons/icons'; // Adicionado checkmarkCircle
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -111,17 +118,31 @@ ion-list {
   --color: white;
   border-radius: 12px;
   margin-bottom: 8px;
+  transition: all 0.2s ease-in-out; /* Adicionada transição para hover e seleção */
+  cursor: pointer;
 }
 
 .genre-item ion-label {
   color: white;
 }
 
-.custom-checkbox {
-  --background: rgba(255, 255, 255, 0.1);
-  --border-color: rgba(255, 255, 255, 0.2);
-  --checkmark-color: #ff0000;
-  --background-checked: rgba(255, 0, 0, 0.2);
-  --border-color-checked: #ff0000;
+/* Estilo para o hover */
+.genre-item:hover {
+  --background: rgba(255, 0, 0, 0.1); /* Fundo vermelho suave no hover */
+  --border-color: #ff0000; /* Borda vermelha no hover */
+  transform: translateY(-2px); /* Leve levantamento no hover */
+  box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2); /* Sombra no hover */
+}
+
+/* Estilo para o item selecionado */
+.genre-item.selected {
+  --background: rgba(255, 0, 0, 0.2); /* Fundo vermelho mais forte para selecionado */
+  --border-color: #ff0000; /* Borda vermelha para selecionado */
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.3); /* Anel de foco para selecionado */
+}
+
+.selected-icon {
+  color: var(--ion-color-primary); /* Usa a cor primária definida em variables.css */
+  font-size: 1.3rem;
 }
 </style>
