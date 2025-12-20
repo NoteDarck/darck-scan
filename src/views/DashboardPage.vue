@@ -213,7 +213,7 @@
                     </div>
                   </div>
                   <div class="work-date">
-                    Publicado em: {{ formatDate(manga.publishedAt) }}
+                    Publicado em: {{ formatDate(manga.published_at) }}
                   </div>
                 </div>
               </div>
@@ -261,7 +261,7 @@
                   {{ draft.synopsis ? (draft.synopsis.substring(0, 100) + '...') : 'Sem descrição' }}
                 </p>
                 <div class="draft-details">
-                  <span class="draft-date">Salvo em: {{ formatDate(draft.updatedAt) }}</span>
+                  <span class="draft-date">Salvo em: {{ formatDate(draft.updated_at) }}</span>
                   <span class="draft-chapters">{{ draft.chapters?.length || 0 }} capítulos</span>
                 </div>
               </div>
@@ -584,15 +584,7 @@ import { MangaData } from '@/types/manga';
 
 const router = useRouter();
 const { user, isAuthenticated } = useAuth();
-const { allStoredMangas, loadAllMangasFromLocalStorage, updateManga } = useMangaData();
-
-const userPublishedMangas = computed(() => {
-  return allStoredMangas.value.filter(m => m.userId === user.value?.id && !m.isDraft);
-});
-
-const userDrafts = computed(() => {
-  return allStoredMangas.value.filter(m => m.userId === user.value?.id && m.isDraft);
-});
+const { userPublishedMangas, userDrafts, loadAllMangasFromSupabase, deleteManga } = useMangaData(); // Atualizado para usar userPublishedMangas, userDrafts e deleteManga
 
 onMounted(() => {
   if (!isAuthenticated.value) {
@@ -635,7 +627,7 @@ const chapterEngagement = ref<any[]>([]);
 
 const loadDashboardData = async () => {
   try {
-    loadAllMangasFromLocalStorage();
+    await loadAllMangasFromSupabase(); // Aguarda o carregamento dos mangás do Supabase
 
     calculateStats();
 
@@ -876,7 +868,7 @@ const viewAnalytics = (id: number) => {
 };
 
 const addChapter = (id: number) => {
-  router.push(`/publish?manga=${id}&addChapter=true`);
+  router.push(`/chapter-editor?mangaId=${id}`); // Redireciona para o ChapterEditor com o ID do mangá
 };
 
 const continueDraft = (id: number) => {
@@ -887,6 +879,7 @@ const previewDraft = (id: number) => {
   const draft = userDrafts.value.find(d => d.id === id);
   if (draft) {
     showToast('Visualizando rascunho...', 'info');
+    // Implementar lógica de visualização de rascunho
   }
 };
 
@@ -901,11 +894,13 @@ const deleteDraft = async (id: number) => {
       },
       {
         text: 'Excluir',
-        handler: () => {
-          const updatedMangas = allStoredMangas.value.filter(m => m.id !== id);
-          localStorage.setItem('publishedMangas', JSON.stringify(updatedMangas));
-          loadAllMangasFromLocalStorage();
-          showToast('Rascunho excluído', 'success');
+        handler: async () => {
+          const result = await deleteManga(id); // Usa a função deleteManga do composable
+          if (result.success) {
+            showToast('Rascunho excluído', 'success');
+          } else {
+            showToast(result.message, 'danger');
+          }
         }
       }
     ]
@@ -1057,12 +1052,12 @@ const sortWorks = () => {
   switch (sortBy.value) {
     case 'newest':
       userPublishedMangas.value.sort((a, b) =>
-        new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime()
+        new Date(b.published_at || 0).getTime() - new Date(a.published_at || 0).getTime()
       );
       break;
     case 'oldest':
       userPublishedMangas.value.sort((a, b) =>
-        new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime()
+        new Date(a.published_at || 0).getTime() - new Date(b.published_at || 0).getTime()
       );
       break;
     case 'views':

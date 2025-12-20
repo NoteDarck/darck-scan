@@ -276,7 +276,7 @@ const {
   isFavorite
 } = useAuth();
 
-const { publishedMangas: allPublishedMangas, loadAllMangasFromLocalStorage } = useMangaData();
+const { publishedMangas: allPublishedMangas, loadAllMangasFromSupabase } = useMangaData(); // Atualizado para loadAllMangasFromSupabase
 
 const backgroundStyles = ref([
   'linear-gradient(135deg, #000000 0%, #1a0000 100%)',
@@ -371,7 +371,7 @@ const seeAllPopular = () => {
 };
 
 const logout = async () => {
-  const result = authLogout();
+  const result = await authLogout(); // Aguarda o resultado do logout
   if (result.success) {
     await showToast(result.message, 'success');
     router.push('/');
@@ -387,23 +387,8 @@ const loadMore = () => {
 };
 
 const openMangaDetails = (manga: MangaData) => {
-  // Check if manga file exists in localStorage
-  const mangaFiles = JSON.parse(localStorage.getItem('mangaFiles') || '{}');
-  const safeTitle = manga.title
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-
-  const fileName = `Manga${manga.id}_${safeTitle}.vue`;
-
-  if (mangaFiles[fileName]) {
-    // If manga file exists, navigate to a dynamic route
-    router.push(`/manga/${manga.id}`);
-  } else {
-    // If no file exists, show a toast
-    showToast('Detalhes do mangá não disponíveis ainda', 'warning');
-  }
+  // Não precisamos mais verificar arquivos locais, pois os mangás vêm do Supabase
+  router.push(`/manga/${manga.id}`);
 };
 
 const toggleFavorite = async (manga: MangaData) => {
@@ -418,7 +403,7 @@ const toggleFavorite = async (manga: MangaData) => {
     return;
   }
 
-  const added = authToggleFavorite(manga.id);
+  const added = await authToggleFavorite(manga.id); // Aguarda o resultado
   await showToast(
     added ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!',
     'success'
@@ -466,10 +451,8 @@ const getStatusLabel = (status: string): string => {
 };
 
 onMounted(() => {
-  if (!localStorage.getItem('users')) {
-    localStorage.setItem('users', JSON.stringify([]));
-  }
-  loadAllMangasFromLocalStorage();
+  // Não precisamos mais inicializar 'users' no localStorage
+  loadAllMangasFromSupabase(); // Garante que os mangás são carregados ao montar a página
 });
 </script>
 

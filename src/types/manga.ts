@@ -18,11 +18,11 @@ export interface MangaData {
   status: 'em-andamento' | 'completo' | 'hiato' | 'cancelado';
   ageRating: string;
   chapters: MangaChapter[];
-  userId?: number;
-  publishedAt?: string;
-  isDraft?: boolean;
-  views?: number; // Adicionado como opcional
-  likes?: number; // Adicionado como opcional
-  comments?: number; // Adicionado como opcional
-  updatedAt?: string; // Adicionado para rascunhos
+  user_id?: string; // Alterado para user_id (string UUID do Supabase)
+  published_at?: string; // Alterado para published_at
+  is_draft?: boolean; // Alterado para is_draft
+  views?: number;
+  likes?: number;
+  comments?: number;
+  updated_at?: string; // Alterado para updated_at
 }

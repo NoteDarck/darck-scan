@@ -49,7 +49,7 @@
           </div>
 
           <div class="manga-actions">
-            <ion-button @click="toggleFavorite" class="favorite-btn">
+            <ion-button @click="toggleFavoriteManga" class="favorite-btn">
               <ion-icon 
                 :icon="isFavorite(manga.id!) ? heart : heartOutline" 
                 slot="start"
@@ -129,7 +129,7 @@ import { MangaData } from '@/types/manga';
 const router = useRouter();
 const route = useRoute();
 const { isAuthenticated, toggleFavorite, isFavorite } = useAuth();
-const { getMangaById, updateManga } = useMangaData();
+const { getMangaById, updateManga } = useMangaData(); // Usar o updateManga do composable
 
 const manga = ref<MangaData | null>(null);
 const mangaId = ref<number | null>(null);
@@ -145,10 +145,10 @@ onMounted(() => {
   loadMangaData();
 });
 
-const loadMangaData = () => {
+const loadMangaData = async () => { // Tornar assíncrona
   if (!mangaId.value) return;
 
-  const storedManga = getMangaById(mangaId.value);
+  const storedManga = await getMangaById(mangaId.value); // Aguardar a busca no Supabase
   if (storedManga) {
     manga.value = storedManga;
 
@@ -160,7 +160,7 @@ const loadMangaData = () => {
     }
 
     // Update manga with new view count
-    updateManga(storedManga);
+    await updateManga(storedManga); // Aguardar a atualização no Supabase
   } else {
     showToast('Mangá não encontrado', 'danger');
     router.push('/');
@@ -185,20 +185,20 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-const toggleFavoriteManga = () => {
+const toggleFavoriteManga = async () => { // Tornar assíncrona
   if (!isAuthenticated.value) {
-    showToast('Faça login para favoritar mangás!', 'warning');
+    await showToast('Faça login para favoritar mangás!', 'warning');
     router.push('/login');
     return;
   }
 
   if (!manga.value?.id) {
-    showToast('ID do mangá não disponível', 'danger');
+    await showToast('ID do mangá não disponível', 'danger');
     return;
   }
 
-  const added = toggleFavorite(manga.value.id);
-  showToast(
+  const added = await toggleFavorite(manga.value.id); // Aguardar o resultado
+  await showToast(
     added ? 'Adicionado aos favoritos!' : 'Removido dos favoritos!',
     'success'
   );

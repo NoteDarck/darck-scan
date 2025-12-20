@@ -103,17 +103,18 @@ import {
   IonIcon,
   alertController,
   toastController
-} from '@ionic/vue';
+}
+from '@ionic/vue';
 import { heart, heartOutline, star, book } from 'ionicons/icons';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-import { useMangaData } from '@/composables/useMangaData'; // Importar o novo composable
-import { MangaData } from '@/types/manga'; // Importar o tipo MangaData
+import { useMangaData } from '@/composables/useMangaData';
+import { MangaData } from '@/types/manga';
 
 const router = useRouter();
 const { isAuthenticated, userFavorites, toggleFavorite } = useAuth();
-const { allStoredMangas, loadAllMangasFromLocalStorage } = useMangaData(); // Usar o composable
+const { allStoredMangas, loadAllMangasFromSupabase } = useMangaData(); // Usar o composable e a função de carregamento do Supabase
 
 // Computed para obter mangás favoritos
 const favoriteMangas = computed(() => {
@@ -133,15 +134,18 @@ const removeFromFavorites = async (manga: MangaData) => {
     await showToast('ID do mangá não disponível para remover dos favoritos.', 'danger');
     return;
   }
-  toggleFavorite(manga.id);
-  
-  const toast = await toastController.create({
-    message: 'Removido dos favoritos',
-    duration: 2000,
-    color: 'success',
-    position: 'top'
-  });
-  await toast.present();
+  const removed = await toggleFavorite(manga.id); // Aguarda a remoção
+  if (removed) {
+    const toast = await toastController.create({
+      message: 'Removido dos favoritos',
+      duration: 2000,
+      color: 'success',
+      position: 'top'
+    });
+    await toast.present();
+  } else {
+    await showToast('Erro ao remover dos favoritos', 'danger');
+  }
 };
 
 const clearAllFavorites = async () => {
@@ -157,8 +161,8 @@ const clearAllFavorites = async () => {
         text: 'Limpar',
         handler: async () => {
           // Limpar todos os favoritos
-          while (userFavorites.value.length > 0) {
-            toggleFavorite(userFavorites.value[0]);
+          for (const mangaId of [...userFavorites.value]) { // Cria uma cópia para iterar
+            await toggleFavorite(mangaId);
           }
           
           const toast = await toastController.create({
@@ -178,8 +182,7 @@ const clearAllFavorites = async () => {
 
 const openMangaDetails = (manga: MangaData) => {
   console.log('Abrindo mangá:', manga.title);
-  // Navegar para página de detalhes
-  // router.push(`/manga/${manga.id}`);
+  router.push(`/manga/${manga.id}`);
 };
 
 const showToast = async (message: string, color: string = 'primary') => {
@@ -193,7 +196,7 @@ const showToast = async (message: string, color: string = 'primary') => {
 };
 
 onMounted(() => {
-  loadAllMangasFromLocalStorage(); // Garante que os mangás são carregados ao montar a página
+  loadAllMangasFromSupabase(); // Garante que os mangás são carregados ao montar a página
 });
 </script>
 
