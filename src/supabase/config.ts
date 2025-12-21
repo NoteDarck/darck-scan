@@ -8,8 +8,9 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key
 // Validate the Supabase URL
 if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
   console.error('Invalid Supabase URL. Please configure your Supabase credentials.');
-  // Return a mock client to prevent crashes
-  export const supabase = {
+
+  // Mock client to prevent crashes
+  const supabase = {
     auth: {
       getUser: async () => ({ data: { user: null } }),
       signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
@@ -25,6 +26,9 @@ if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
       delete: () => ({ eq: () => ({ error: new Error('Supabase not configured') }) }),
     }),
   };
+
+  export { supabase };
 } else {
-  export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  export { supabase };
 }
