@@ -5,4 +5,26 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-ref.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Validate the Supabase URL
+if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
+  console.error('Invalid Supabase URL. Please configure your Supabase credentials.');
+  // Return a mock client to prevent crashes
+  export const supabase = {
+    auth: {
+      getUser: async () => ({ data: { user: null } }),
+      signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
+      signUp: async () => ({ data: null, error: new Error('Supabase not configured') }),
+      signOut: async () => ({ error: new Error('Supabase not configured') }),
+      updateUser: async () => ({ data: null, error: new Error('Supabase not configured') }),
+      onAuthStateChange: () => () => {},
+    },
+    from: () => ({
+      select: () => ({ eq: () => ({ data: [], error: new Error('Supabase not configured') }) }),
+      insert: () => ({ select: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }) }),
+      update: () => ({ eq: () => ({ select: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }) }) }),
+      delete: () => ({ eq: () => ({ error: new Error('Supabase not configured') }) }),
+    }),
+  };
+} else {
+  export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+}
