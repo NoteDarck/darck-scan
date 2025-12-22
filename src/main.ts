@@ -23,7 +23,11 @@ import '@ionic/vue/css/display.css';
 import './theme/variables.css';
 
 const app = createApp(App)
-  .use(IonicVue)
+  .use(IonicVue, {
+    mode: 'ios', // Force iOS mode for more consistent animations
+    animated: true, // Ensure animations are enabled
+    rippleEffect: true
+  })
   .use(router);
 
 router.isReady().then(() => {
