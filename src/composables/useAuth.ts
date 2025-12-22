@@ -1,11 +1,12 @@
 // src/composables/useAuth.ts
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { supabase } from '@/supabase/config'; // Importar o cliente Supabase
-import type { User as SupabaseUser } from '@supabase/supabase-js'; // Importar o tipo User do Supabase
+import { supabase } from '@/supabase/config';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 interface User {
-  id: string; // Supabase user IDs are strings (UUIDs)
+  id: string;
   name: string;
   email: string;
   createdAt: string;
@@ -20,11 +21,10 @@ interface AuthResponse {
 
 const user = ref<User | null>(null);
 const isLoading = ref(false);
-const userFavorites = ref<number[]>([]); // Manga IDs
+const userFavorites = ref<number[]>([]);
 
 const router = useRouter();
 
-// Função para carregar o usuário e favoritos do Supabase
 const loadUserAndFavorites = async () => {
   isLoading.value = true;
   try {
@@ -39,15 +39,13 @@ const loadUserAndFavorites = async () => {
         avatar: supabaseUser.user_metadata?.avatar_url || undefined,
       };
 
-      // Carregar favoritos do Supabase
       const { data: favoritesData, error: favoritesError } = await supabase
         .from('user_favorites')
         .select('manga_id')
         .eq('user_id', user.value.id);
 
       if (favoritesError) throw favoritesError;
-      userFavorites.value = favoritesData.map(fav => fav.manga_id);
-
+      userFavorites.value = favoritesData.map((fav: { manga_id: number }) => fav.manga_id);
     } else {
       user.value = null;
       userFavorites.value = [];
@@ -61,18 +59,16 @@ const loadUserAndFavorites = async () => {
   }
 };
 
-// Listener para mudanças de estado de autenticação do Supabase
-supabase.auth.onAuthStateChange((event, session) => {
+supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
   if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
     loadUserAndFavorites();
   } else if (event === 'SIGNED_OUT') {
     user.value = null;
     userFavorites.value = [];
-    router.push('/login'); // Redireciona para login após logout
+    router.push('/login');
   }
 });
 
-// Carregar usuário e favoritos na montagem inicial
 onMounted(() => {
   loadUserAndFavorites();
 });
@@ -81,7 +77,6 @@ export const useAuth = () => {
   const isAuthenticated = computed(() => !!user.value);
   const userName = computed(() => user.value?.name || 'Usuário');
 
-  // Login com e-mail/senha
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     isLoading.value = true;
     try {
@@ -92,7 +87,7 @@ export const useAuth = () => {
 
       if (error) throw error;
 
-      await loadUserAndFavorites(); // Recarrega o usuário e favoritos após login
+      await loadUserAndFavorites();
 
       return {
         success: true,
@@ -109,20 +104,18 @@ export const useAuth = () => {
     }
   };
 
-  // Login com Google
   const loginWithGoogle = async (): Promise<AuthResponse> => {
     isLoading.value = true;
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + router.resolve('/').href, // Redireciona para a home após login
+          redirectTo: window.location.origin + router.resolve('/').href,
         },
       });
 
       if (error) throw error;
 
-      // O listener onAuthStateChange cuidará de carregar o usuário após o redirecionamento
       return {
         success: true,
         message: 'Redirecionando para login com Google...',
@@ -137,7 +130,6 @@ export const useAuth = () => {
     }
   };
 
-  // Registro
   const register = async (name: string, email: string, password: string): Promise<AuthResponse> => {
     isLoading.value = true;
     try {
@@ -147,7 +139,7 @@ export const useAuth = () => {
         options: {
           data: {
             full_name: name,
-            avatar_url: 'https://ionicframework.com/docs/img/demos/avatar.svg', // Default avatar
+            avatar_url: 'https://ionicframework.com/docs/img/demos/avatar.svg',
           },
         },
       });
@@ -155,7 +147,7 @@ export const useAuth = () => {
       if (error) throw error;
 
       if (data.user && data.session) {
-        await loadUserAndFavorites(); // Recarrega o usuário e favoritos após registro
+        await loadUserAndFavorites();
         return {
           success: true,
           message: 'Cadastro realizado com sucesso! Verifique seu e-mail para confirmar a conta.',
@@ -177,7 +169,6 @@ export const useAuth = () => {
     }
   };
 
-  // Logout
   const logout = async (): Promise<AuthResponse> => {
     isLoading.value = true;
     try {
@@ -200,7 +191,6 @@ export const useAuth = () => {
     }
   };
 
-  // Atualizar perfil do usuário
   const updateUserProfile = async (newName: string, newAvatar?: string): Promise<AuthResponse> => {
     if (!user.value) {
       return { success: false, message: 'Nenhum usuário logado.' };
@@ -241,7 +231,6 @@ export const useAuth = () => {
     }
   };
 
-  // Adicionar/remover favoritos no Supabase
   const toggleFavorite = async (mangaId: number): Promise<boolean> => {
     if (!user.value?.id) {
       console.warn('Usuário não autenticado para favoritar.');
@@ -254,7 +243,6 @@ export const useAuth = () => {
 
     try {
       if (index > -1) {
-        // Remover dos favoritos
         const { error } = await supabase
           .from('user_favorites')
           .delete()
@@ -265,7 +253,6 @@ export const useAuth = () => {
         userFavorites.value.splice(index, 1);
         added = false;
       } else {
-        // Adicionar aos favoritos
         const { error } = await supabase
           .from('user_favorites')
           .insert({ user_id: userId, manga_id: mangaId });
@@ -281,7 +268,6 @@ export const useAuth = () => {
     return added;
   };
 
-  // Verificar se é favorito
   const isFavorite = (mangaId: number): boolean => {
     return userFavorites.value.includes(mangaId);
   };
@@ -299,6 +285,6 @@ export const useAuth = () => {
     updateUserProfile,
     toggleFavorite,
     isFavorite,
-    loadUserAndFavorites, // Expor para recarregar manualmente se necessário
+    loadUserAndFavorites,
   };
 };

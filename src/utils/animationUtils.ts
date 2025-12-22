@@ -17,8 +17,12 @@ export function setAnimationTimeSafely(animation: Animation | null, time: number
         time = 0;
     }
 
+    // Get animation duration as a number
+    const duration = animation.effect?.getTiming()?.duration;
+    const safeDuration = typeof duration === 'number' ? duration : 0;
+
     // Limit time to animation duration
-    const safeTime = Math.max(0, Math.min(time, animation.effect?.getTiming()?.duration || 0));
+    const safeTime = Math.max(0, Math.min(time, safeDuration));
 
     try {
         animation.currentTime = safeTime;
@@ -52,10 +56,11 @@ export class SafeAnimationController {
         }
 
         // Get animation duration
-        const duration = animation.effect?.getTiming()?.duration || 0;
+        const duration = animation.effect?.getTiming()?.duration;
+        const safeDuration = typeof duration === 'number' ? duration : 0;
 
         // Ensure time is within bounds
-        const limitedTime = Math.min(Math.max(numericTime, 0), duration);
+        const limitedTime = Math.min(Math.max(numericTime, 0), safeDuration);
 
         try {
             animation.currentTime = limitedTime;
